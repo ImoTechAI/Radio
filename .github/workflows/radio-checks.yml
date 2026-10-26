@@ -143,5 +143,8 @@ jobs:
           assert '<svg viewBox="0 0 110 116"' in page
           assert 'M17.7 51.8 L5.9 40.7' in page
           assert 'M97.4 80.7 L97.0 79.8' in page
+          assert 'transform:translateY(22px) rotateX(var(--tilt-x))' in page
+          assert '#expanded-map svg{' in page
+          assert 'aria-label="Return to Africa Explorer map"><svg viewBox="0 0 110 116"' in page
           print('Static checks passed')
           PY
