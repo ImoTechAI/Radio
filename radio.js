@@ -124,6 +124,7 @@ new ResizeObserver(fitExplorerPlayer).observe(document.querySelector('.player'))
 function route(){const match=location.hash.match(/^#\/(country\/([A-Z]{2})|all)$/);showView(match?(match[2]||'all'):null)}
 window.addEventListener('hashchange',route);
 window.addEventListener('radio:country',event=>{const code=event.detail?.code;if(!AFRICA.includes(code))return;location.hash='#/country/'+code;if(location.hash==='#/country/'+code)route()});
+$('player-map-shortcut').addEventListener('click',()=>{location.hash='#/explore';route();window.scrollTo({top:0,behavior:'smooth'})});
 $('back-to-map').addEventListener('click',()=>{location.hash='#/explore';route();window.scrollTo({top:0,behavior:'smooth'})});
 els.audio.addEventListener('playing',()=>setPlaybackState('playing'));
 els.audio.addEventListener('pause',()=>{if(playbackState!=='unavailable')setPlaybackState('paused')});
