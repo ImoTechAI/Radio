@@ -13,7 +13,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setClearColor(0,0);
 host.append(renderer.domElement);
 const group=new THREE.Group();scene.add(group);
-group.rotation.x=-0.16;group.rotation.y=-0.10;
+group.rotation.x=-0.30;group.rotation.y=-0.12;
 const zoomLimits={min:0.8,max:3.5};
 function setZoom(value){camera.zoom=THREE.MathUtils.clamp(value,zoomLimits.min,zoomLimits.max);camera.updateProjectionMatrix()}
 function zoomBy(factor){setZoom(camera.zoom*factor)}
@@ -45,7 +45,7 @@ function setHover(code){
   hoveredCode=code;
   for(const [key,country] of countryGroups){
     const active=key===code;
-    country.target=active ? 0.95 : 0;
+    country.target=active ? 1.4 : 0;
     for(const mesh of country.meshes)mesh.material[0].color.setHex(active?0xe0a84f:0x253c4d);
     for(const mesh of country.meshes)mesh.material[1].color.setHex(active?0x80501b:0x15232e);
     for(const border of country.borders){border.material.color.setHex(active?0xffd079:0xa67b39);border.material.opacity=active?1:.6}
@@ -65,7 +65,7 @@ document.getElementById('map-zoom-in').addEventListener('click',()=>zoomBy(1.25)
 document.getElementById('map-zoom-out').addEventListener('click',()=>zoomBy(1/1.25));
 document.getElementById('map-zoom-reset').addEventListener('click',()=>setZoom(1));
 renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY};drag=false;renderer.domElement.setPointerCapture(e.pointerId)});
-renderer.domElement.addEventListener('pointermove',e=>{if(!down){hover(e);return}tooltip.hidden=true;const dx=e.clientX-down.x;if(Math.abs(dx)>5||Math.abs(e.clientY-down.y)>5)drag=true;if(drag){group.rotation.y=Math.max(-.45,Math.min(.45,group.rotation.y+e.movementX*.003));group.rotation.x=Math.max(-.3,Math.min(.3,group.rotation.x+e.movementY*.003))}});
+renderer.domElement.addEventListener('pointermove',e=>{if(!down){hover(e);return}tooltip.hidden=true;const dx=e.clientX-down.x;if(Math.abs(dx)>5||Math.abs(e.clientY-down.y)>5)drag=true;if(drag){group.rotation.y=Math.max(-.45,Math.min(.45,group.rotation.y+e.movementX*.003));group.rotation.x=Math.max(-.55,Math.min(.55,group.rotation.x+e.movementY*.003))}});
 renderer.domElement.addEventListener('pointerup',e=>{if(!drag)pick(e);down=null;hover(e)});
 renderer.domElement.addEventListener('pointerleave',()=>{tooltip.hidden=true;setHover(null)});
 renderer.domElement.addEventListener('pointercancel',()=>{down=null;drag=false;setHover(null);tooltip.hidden=true});
