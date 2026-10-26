@@ -117,9 +117,19 @@ function addLiveEffects(country){
     if(coords.count>longest.length)longest=Array.from({length:coords.count},(_,i)=>new THREE.Vector3(coords.getX(i),coords.getY(i),.34));
   }
   if(longest.length>2){
-    country.tracerPath=longest;
-    const dot=new THREE.Mesh(new THREE.SphereGeometry(.095,10,8),new THREE.MeshBasicMaterial({color:0xffd477,depthTest:false}));
-    dot.renderOrder=7;dot.visible=false;country.group.add(dot);country.tracer=dot;
+    // Trace by actual perimeter distance, not vertex count, for constant speed.
+    const path=longest.slice();
+    if(path[0].distanceTo(path[path.length-1])>.001)path.push(path[0].clone());
+    const lengths=[0];
+    for(let i=1;i<path.length;i++)lengths.push(lengths[i-1]+path[i].distanceTo(path[i-1]));
+    country.tracerPath={points:path,lengths,total:lengths[lengths.length-1]};
+    const glow=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(path.slice(0,-1)),new THREE.LineBasicMaterial({color:0xe5ac42,transparent:true,opacity:.38,depthTest:false}));
+    glow.renderOrder=6;glow.visible=false;country.group.add(glow);country.borderGlow=glow;
+    const trailPoints=Array.from({length:19},()=>new THREE.Vector3());
+    const trail=new THREE.Line(new THREE.BufferGeometry().setFromPoints(trailPoints),new THREE.LineBasicMaterial({color:0xffd477,transparent:true,opacity:.95,depthTest:false}));
+    trail.renderOrder=8;trail.visible=false;country.group.add(trail);country.trail=trail;
+    const dot=new THREE.Mesh(new THREE.SphereGeometry(.11,12,8),new THREE.MeshBasicMaterial({color:0xffe8a0,depthTest:false}));
+    dot.renderOrder=9;dot.visible=false;country.group.add(dot);country.tracer=dot;
   }
   const box=new THREE.Box3();
   for(const mesh of country.meshes)box.expandByObject(mesh);
@@ -191,12 +201,29 @@ function animate(){
     const pulse=live&&!reducedMotion?.12*Math.sin(time*2.8):0;
     country.group.position.z=country.lift+pulse;
     if(country.tracer){
-      country.tracer.visible=live&&!reducedMotion;
-      if(country.tracer.visible){
+      const visible=live&&!reducedMotion;
+      country.tracer.visible=visible;
+      country.trail.visible=visible;
+      country.borderGlow.visible=visible;
+      if(visible){
         const path=country.tracerPath;
-        const position=(time*.65)%path.length;
-        const index=Math.floor(position),next=(index+1)%path.length;
-        country.tracer.position.copy(path[index]).lerp(path[next],position-index);
+        // One lap every six seconds, independent of outline complexity.
+        const head=(time/6%1)*path.total;
+        const pointAt=distance=>{
+          const d=((distance%path.total)+path.total)%path.total;
+          let low=0,high=path.lengths.length-1;
+          while(low<high){const mid=(low+high)>>1;if(path.lengths[mid]<d)low=mid+1;else high=mid}
+          const end=Math.max(1,low),start=end-1;
+          const span=path.lengths[end]-path.lengths[start];
+          return path.points[start].clone().lerp(path.points[end],span?(d-path.lengths[start])/span:0);
+        };
+        country.tracer.position.copy(pointAt(head));
+        const positions=country.trail.geometry.attributes.position;
+        for(let i=0;i<positions.count;i++){
+          const p=pointAt(head-(positions.count-1-i)*path.total*.0025);
+          positions.setXYZ(i,p.x,p.y,p.z);
+        }
+        positions.needsUpdate=true;
       }
     }
     for(let i=0;i<country.equaliser.length;i++){
