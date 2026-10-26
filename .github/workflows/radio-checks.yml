@@ -36,11 +36,11 @@ jobs:
           for expected in ('THREE.OrthographicCamera', 'camera.left=-halfWidth', 'camera.top=halfHeight', 'function resize()', 'function hover(event)', 'hitTest(event)', 'tooltip.textContent=hit.userData.name', 'bounds.getCenter', 'mapCentre.set(-centre.x,-centre.y)'):
               assert expected in map_js, f'Missing map fit or hover behaviour: {expected}'
           assert '.map-tooltip' in page and '.map-tooltip[hidden]' in page
-          assert 'africa-map.js?v=13' in page
+          assert 'africa-map.js?v=14' in page
           assert 'renderer.setSize(w,h);' in map_js, 'Canvas CSS size must track container dimensions'
           assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
           assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
-          assert 'radio.js?v=11' in page
+          assert 'radio.js?v=14' in page
           for expected in ('id="explorer-view"', 'id="directory-view"', 'id="back-to-map"', 'id="browse-all"', 'id="directory-title"'):
               assert expected in page, f'Missing two-view navigation: {expected}'
           for expected in ('function showView(code)', 'function route()', "location.hash='#/country/'", "location.hash='#/explore'", "window.addEventListener('hashchange',route)"):
@@ -51,7 +51,7 @@ jobs:
               assert expected in js, f'Missing Phase 4 logic: {expected}'
           assert 'grid-template-columns:repeat(2,minmax(0,1fr))' in page, 'Missing tablet/mobile cards'
           assert 'grid-template-columns:1fr' in page, 'Missing narrow-screen cards'
-          assert 'africa-map.js?v=13' in page, 'Phase 3 map must be unchanged'
+          assert 'africa-map.js?v=14' in page, 'Phase 3 map must be unchanged'
           assert '<img class="brand-logo" src="./ARPLogo.png"' in page
           assert 'id="clear-recent"' in page
           assert 'function clearRecentStations()' in js
@@ -72,5 +72,10 @@ jobs:
           for expected in ('const pan=new THREE.Vector2()', 'function clampPan()', "mode:camera.zoom>1.01&&!e.shiftKey?'pan':'rotate'", "if(down.mode==='pan')", 'pan.x+=dx*', 'pan.y-=dy*', 'pan.set(0,0);setZoom(1)'):
               assert expected in map_js, f'Missing zoomed map pan: {expected}'
           assert 'Drag to pan when zoomed' in page and 'Shift-drag to tilt' in page
+          for expected in ("new CustomEvent('radio:playback'", "state,code:current?.countrycode?.toUpperCase()||null"):
+              assert expected in js, f'Missing player broadcast state: {expected}'
+          for expected in ("function setBroadcast(code,name)", "addEventListener('radio:playback'", "new THREE.RingGeometry", "function addBroadcastRings(country)", "country.code===broadcastCode", "ring.visible=live&&!reducedMotion", "if(pendingBroadcast)setBroadcast"):
+              assert expected in map_js, f'Missing broadcast map animation: {expected}'
+          assert '.map-broadcast-label[hidden]' in page
           print('Static checks passed')
           PY
