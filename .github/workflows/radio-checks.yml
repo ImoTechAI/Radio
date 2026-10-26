@@ -15,7 +15,7 @@ jobs:
       - name: JavaScript syntax
         run: |
           node --check radio.js
-          node --check africa-map.js
+          node --input-type=module --check < africa-map.js
       - name: Static page checks
         run: |
           python3 - <<'PY'
