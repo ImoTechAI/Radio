@@ -7,7 +7,7 @@ const overrides={'Ivory Coast':'CI','Democratic Republic of the Congo':'CD','Rep
 const display=new Intl.DisplayNames(['en'],{type:'region'});
 const codes=['DZ','AO','BJ','BW','BF','BI','CV','CM','CF','TD','KM','CD','CG','CI','DJ','EG','GQ','ER','SZ','ET','GA','GM','GH','GN','GW','KE','LS','LR','LY','MG','MW','ML','MR','MU','MA','MZ','NA','NE','NG','RW','ST','SN','SC','SL','SO','ZA','SS','SD','TZ','TG','TN','UG','ZM','ZW'];
 const byName=new Map(codes.map(code=>[display.of(code).toLowerCase(),code]));
-const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(38,1,.1,200);
+const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-10,10,10,-10,.1,200);
 camera.position.set(0,0,35);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setClearColor(0,0);
@@ -29,8 +29,21 @@ renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.cli
 renderer.domElement.addEventListener('pointermove',e=>{if(!down){hover(e);return}tooltip.hidden=true;const dx=e.clientX-down.x;if(Math.abs(dx)>5||Math.abs(e.clientY-down.y)>5)drag=true;if(drag){group.rotation.y=Math.max(-.45,Math.min(.45,group.rotation.y+e.movementX*.003));group.rotation.x=Math.max(-.3,Math.min(.3,group.rotation.x+e.movementY*.003))}});
 renderer.domElement.addEventListener('pointerup',e=>{if(!drag)pick(e);down=null;hover(e)});
 renderer.domElement.addEventListener('pointerleave',()=>{tooltip.hidden=true});
-function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;camera.aspect=w/h;const size=bounds.isEmpty()?new THREE.Vector3(16,17,0):bounds.getSize(new THREE.Vector3());const vFov=THREE.MathUtils.degToRad(camera.fov);const hFov=2*Math.atan(Math.tan(vFov/2)*camera.aspect);const depth=Math.max(size.y/(2*Math.tan(vFov/2)),size.x/(2*Math.tan(hFov/2)))*1.22;camera.position.set(0,0,Math.max(depth,12));camera.lookAt(0,0,0);camera.updateProjectionMatrix();renderer.setSize(w,h,false)}
+function resize(){
+  const w=host.clientWidth,h=host.clientHeight;
+  if(!w||!h)return;
+  // Fixed geographic framing: Africa extends approximately 18°W–52°E, 35°S–38°N.
+  // Preserve aspect ratio by expanding the shorter camera axis, never by cropping.
+  const halfWidth=9.5,halfHeight=10;
+  const aspect=w/h;
+  const visibleHalfHeight=Math.max(halfHeight,halfWidth/aspect);
+  const visibleHalfWidth=visibleHalfHeight*aspect;
+  camera.left=-visibleHalfWidth;camera.right=visibleHalfWidth;
+  camera.top=visibleHalfHeight;camera.bottom=-visibleHalfHeight;
+  camera.position.set(0,0,35);camera.lookAt(0,0,0);
+  camera.updateProjectionMatrix();renderer.setSize(w,h,false);
+}
 new ResizeObserver(resize).observe(host);resize();
 function animate(){frame=requestAnimationFrame(animate);renderer.render(scene,camera)}animate();
-async function init(){try{const res=await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');if(!res.ok)throw Error('Map data unavailable');const geo=await res.json();for(const feature of geo.features){const raw=feature.properties?.name||'';const name=aliases[raw]||raw;if(!countries.has(name))continue;const code=countryCode(name);if(!code)continue;const geometry=feature.geometry;if(!geometry)continue;const polys=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];for(const polygon of polys){if(polygon[0])addPolygon(polygon[0],name,code)}}if(!targets.length)throw Error('No countries available');const center=bounds.getCenter(new THREE.Vector3());group.position.set(-center.x,-center.y,0);bounds.translate(new THREE.Vector3(-center.x,-center.y,0));resize();status.textContent='Select a country on the 3D map to explore its stations';}catch(e){status.textContent='3D map data unavailable. Use the country selector below.';host.replaceChildren();cancelAnimationFrame(frame)}}
+async function init(){try{const res=await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');if(!res.ok)throw Error('Map data unavailable');const geo=await res.json();for(const feature of geo.features){const raw=feature.properties?.name||'';const name=aliases[raw]||raw;if(!countries.has(name))continue;const code=countryCode(name);if(!code)continue;const geometry=feature.geometry;if(!geometry)continue;const polys=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];for(const polygon of polys){if(polygon[0])addPolygon(polygon[0],name,code)}}if(!targets.length)throw Error('No countries available');group.position.set(0,0,0);resize();status.textContent='Select a country on the 3D map to explore its stations';}catch(e){status.textContent='3D map data unavailable. Use the country selector below.';host.replaceChildren();cancelAnimationFrame(frame)}}
 init();
