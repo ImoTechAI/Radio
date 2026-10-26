@@ -37,7 +37,7 @@ jobs:
           for expected in ('THREE.OrthographicCamera', 'camera.left=-halfWidth', 'camera.top=halfHeight', 'function resize()', 'function hover(event)', 'hitTest(event)', 'tooltip.textContent=hit.userData.name', 'bounds.getCenter', 'mapCentre.set(-centre.x,-centre.y)'):
               assert expected in map_js, f'Missing map fit or hover behaviour: {expected}'
           assert '.map-tooltip' in page and '.map-tooltip[hidden]' in page
-          assert 'africa-map.js?v=14' in page
+          assert 'africa-map.js?v=15' in page
           assert 'renderer.setSize(w,h);' in map_js, 'Canvas CSS size must track container dimensions'
           assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
           assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
@@ -52,7 +52,7 @@ jobs:
               assert expected in js, f'Missing Phase 4 logic: {expected}'
           assert 'grid-template-columns:repeat(2,minmax(0,1fr))' in page, 'Missing tablet/mobile cards'
           assert 'grid-template-columns:1fr' in page, 'Missing narrow-screen cards'
-          assert 'africa-map.js?v=14' in page, 'Phase 3 map must be unchanged'
+          assert 'africa-map.js?v=15' in page, 'Phase 3 map must be unchanged'
           assert '<img class="brand-logo" src="./ARPLogo.png"' in page
           assert 'id="clear-recent"' in page
           assert 'function clearRecentStations()' in js
@@ -123,5 +123,7 @@ jobs:
           assert "background-position:center 14%;background-size:auto clamp(760px,110vh,1250px)" in page
           assert "@media(max-width:800px){.map-wrap::before" in page
           assert "pointer-events:none;z-index:2" in page
+          for expected in ('function addLiveEffects(country)', 'country.tracer.position.copy', 'country.group.position.z=country.lift+pulse', 'country.equaliser.length', 'bar.scale.y=', "state==='buffering'"):
+              assert expected in map_js, f'Missing live map animation: {expected}'
           print('Static checks passed')
           PY
