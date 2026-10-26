@@ -40,7 +40,7 @@ jobs:
           assert 'renderer.setSize(w,h);' in map_js, 'Canvas CSS size must track container dimensions'
           assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
           assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
-          assert 'radio.js?v=9' in page
+          assert 'radio.js?v=10' in page
           for expected in ('id="explorer-view"', 'id="directory-view"', 'id="back-to-map"', 'id="browse-all"', 'id="directory-title"'):
               assert expected in page, f'Missing two-view navigation: {expected}'
           for expected in ('function showView(code)', 'function route()', "location.hash='#/country/'", "location.hash='#/explore'", "window.addEventListener('hashchange',route)"):
@@ -52,5 +52,12 @@ jobs:
           assert 'grid-template-columns:repeat(2,minmax(0,1fr))' in page, 'Missing tablet/mobile cards'
           assert 'grid-template-columns:1fr' in page, 'Missing narrow-screen cards'
           assert 'africa-map.js?v=8' in page, 'Phase 3 map must be unchanged'
+          assert '<img class="brand-logo" src="./ARPLogo.png"' in page
+          assert 'id="clear-recent"' in page
+          assert 'function clearRecentStations()' in js
+          assert "localStorage.removeItem(recentKey)" in js
+          assert "$('clear-recent').addEventListener('click',clearRecentStations)" in js
+          assert '.map-wrap::before' in page and 'pointer-events:none;z-index:2' in page
+          assert '.directory-heading::before' in page and '.expanded-card::before' in page
           print('Static checks passed')
           PY
