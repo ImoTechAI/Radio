@@ -13,7 +13,9 @@ jobs:
         with:
           node-version: '22'
       - name: JavaScript syntax
-        run: node --check radio.js
+        run: |
+          node --check radio.js
+          node --check africa-map.js
       - name: Static page checks
         run: |
           python3 - <<'PY'
@@ -24,5 +26,12 @@ jobs:
               assert expected in page, f'Missing page element: {expected}'
           for expected in ('localStorage', 'fetchStations', 'playStation', 'favourites()', 'aria-pressed'):
               assert expected in js, f'Missing player capability: {expected}'
+          map_js=Path('africa-map.js').read_text()
+          for expected in ('id="africa-map"', 'id="map-status"', 'id="player-art"', 'id="next-station"', 'id="recent-stations"', 'africa-map.js'):
+              assert expected in page, f'Missing Phase 3 element: {expected}'
+          for expected in ('radio:country', 'THREE.WebGLRenderer', 'raycaster.intersectObjects', 'countryCode'):
+              assert expected in map_js, f'Missing 3D map capability: {expected}'
+          for expected in ('recentStations', 'rememberStation', 'next-station', 'radio:country'):
+              assert expected in js, f'Missing enhanced player capability: {expected}'
           print('Static checks passed')
           PY
