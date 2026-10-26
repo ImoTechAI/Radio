@@ -34,6 +34,7 @@ const countryGroups=new Map();
 let hoveredCode=null;
 let broadcastCode=null;
 let broadcastName='';
+let pendingBroadcast=null;
 const broadcastLabel=document.createElement('div');broadcastLabel.className='map-broadcast-label';broadcastLabel.hidden=true;host.append(broadcastLabel);
 const broadcastClock=new THREE.Clock();
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -87,7 +88,8 @@ function setBroadcast(code,name){
 }
 window.addEventListener('radio:playback',event=>{
   const {state,code,name}=event.detail||{};
-  setBroadcast(state==='playing'?code:null,name||'');
+  pendingBroadcast=state==='playing'?{code,name:name||''}:null;
+  setBroadcast(pendingBroadcast?.code||null,pendingBroadcast?.name||'');
 });
 function addBroadcastRings(country){
   const box=new THREE.Box3();
@@ -175,5 +177,5 @@ function animate(){
   }
   renderer.render(scene,camera);
 }animate();
-async function init(){try{const res=await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');if(!res.ok)throw Error('Map data unavailable');const geo=await res.json();for(const feature of geo.features){const raw=feature.properties?.name||'';const name=aliases[raw]||raw;if(!countries.has(name))continue;const code=countryCode(name);if(!code)continue;const geometry=feature.geometry;if(!geometry)continue;const polys=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];for(const polygon of polys){if(polygon[0])addPolygon(polygon[0],name,code)}}if(!targets.length)throw Error('No countries available');for(const country of countryGroups.values())addBroadcastRings(country);const centre=bounds.getCenter(new THREE.Vector3());mapSize=bounds.getSize(new THREE.Vector3());mapCentre.set(-centre.x,-centre.y);group.position.set(mapCentre.x,mapCentre.y,0);resize();status.textContent='Select a country on the 3D map to explore its stations';}catch(e){status.textContent='3D map data unavailable. Use the country selector below.';host.replaceChildren();cancelAnimationFrame(frame)}}
+async function init(){try{const res=await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');if(!res.ok)throw Error('Map data unavailable');const geo=await res.json();for(const feature of geo.features){const raw=feature.properties?.name||'';const name=aliases[raw]||raw;if(!countries.has(name))continue;const code=countryCode(name);if(!code)continue;const geometry=feature.geometry;if(!geometry)continue;const polys=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];for(const polygon of polys){if(polygon[0])addPolygon(polygon[0],name,code)}}if(!targets.length)throw Error('No countries available');for(const country of countryGroups.values())addBroadcastRings(country);if(pendingBroadcast)setBroadcast(pendingBroadcast.code,pendingBroadcast.name);const centre=bounds.getCenter(new THREE.Vector3());mapSize=bounds.getSize(new THREE.Vector3());mapCentre.set(-centre.x,-centre.y);group.position.set(mapCentre.x,mapCentre.y,0);resize();status.textContent='Select a country on the 3D map to explore its stations';}catch(e){status.textContent='3D map data unavailable. Use the country selector below.';host.replaceChildren();cancelAnimationFrame(frame)}}
 init();
