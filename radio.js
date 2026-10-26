@@ -14,13 +14,14 @@ let mode='africa', stations=[], offset=0, busy=false, current=null, requestId=0,
 const GENRES=[['','All'],['afrobeats','Afrobeats'],['gospel','Gospel'],['news','News'],['talk','Talk'],['jazz','Jazz'],['reggae','Reggae'],['music','Music']];
 function updateGenreChips(){const box=$('genre-chips');box.replaceChildren();for(const [tag,label] of GENRES){const button=make('button','genre-chip',label);button.type='button';button.setAttribute('aria-pressed',String(els.genre.value===tag));button.addEventListener('click',()=>{els.genre.value=tag;updateGenreChips();load()});box.append(button)}}
 function setPlaybackState(state){playbackState=state;window.dispatchEvent(new CustomEvent('radio:playback',{detail:{state,code:current?.countrycode?.toUpperCase()||null,name:current?.name||''}}));const messages={idle:'Ready to listen',connecting:'Connecting…',buffering:'Buffering…',playing:'Live',paused:'Paused',unavailable:'Stream unavailable or blocked. Try again.'};els.playback.textContent=messages[state]||state;$('live-indicator').hidden=state!=='playing';$('retry-stream').hidden=state!=='unavailable';$('expanded-retry').hidden=state!=='unavailable';$('expanded-status').textContent=messages[state]||state;els.toggle.textContent=state==='playing'?'Ⅱ':'▶';$('expanded-toggle').textContent=els.toggle.textContent;if(stations.length)render();}
-function syncExpanded(){const art=$('player-art');$('expanded-art').src=art.src;$('expanded-name').textContent=els.now.textContent;$('expanded-status').textContent=els.playback.textContent;$('expanded-toggle').textContent=els.toggle.textContent}
+function syncExpanded(){syncExpandedFavourite();const art=$('player-art');$('expanded-art').src=art.src;$('expanded-name').textContent=els.now.textContent;$('expanded-status').textContent=els.playback.textContent;$('expanded-toggle').textContent=els.toggle.textContent}
 function sortStations(items){const sort=$('sort').value;if(sort==='name')return items.sort((a,b)=>a.name.localeCompare(b.name));if(sort==='recent')return items.sort((a,b)=>(Number(b.lastchangetime)||Date.parse(b.lastchangetime_iso8601||'')||0)-(Number(a.lastchangetime)||Date.parse(a.lastchangetime_iso8601||'')||0));return items.sort((a,b)=>(Number(b.clickcount)||0)-(Number(a.clickcount)||0))}
 
 function favourites(){try{const data=JSON.parse(localStorage.getItem(storeKey)||'[]');return Array.isArray(data)?data.filter(x=>x&&typeof x.stationuuid==='string'):[]}catch{return []}}
 function saveFavourites(items){try{localStorage.setItem(storeKey,JSON.stringify(items))}catch{els.status.textContent='Browser storage is unavailable; favourites cannot be saved.'}}
 function isFavourite(s){return favourites().some(x=>x.stationuuid===s.stationuuid)}
-function toggleFavourite(s){const saved=favourites();saveFavourites(isFavourite(s)?saved.filter(x=>x.stationuuid!==s.stationuuid):[...saved,s]);if(mode==='favourites')load();else render()}
+function toggleFavourite(s){const saved=favourites();saveFavourites(isFavourite(s)?saved.filter(x=>x.stationuuid!==s.stationuuid):[...saved,s]);syncExpandedFavourite();if(mode==='favourites')load();else render()}
+function syncExpandedFavourite(){const button=$('expanded-favourite');if(!button)return;const saved=!!current&&isFavourite(current);button.disabled=!current;button.textContent=saved?'★':'☆';button.setAttribute('aria-pressed',String(saved));button.setAttribute('aria-label',(saved?'Remove from favourites: ':'Add to favourites: ')+(current?.name||'No station selected'));button.title=saved?'Remove from favourites':'Add to favourites'}
 function validStation(s){return s&&typeof s.stationuuid==='string'&&typeof s.name==='string'&&/^https:\/\//i.test(s.url_resolved||s.url||'')}
 function stationUrl(s){return s.url_resolved||s.url}
 function make(tag,cls,txt){const el=document.createElement(tag);if(cls)el.className=cls;if(txt!==undefined)el.textContent=txt;return el}
@@ -101,6 +102,7 @@ els.audio.addEventListener('loadstart',()=>{if(current)setPlaybackState('connect
 function toggleAudio(){if(!current)return;if(els.audio.paused){setPlaybackState('connecting');els.audio.play().catch(playError)}else els.audio.pause()}
 els.toggle.addEventListener('click',toggleAudio);
 $('expanded-toggle').addEventListener('click',toggleAudio);
+$('expanded-favourite').addEventListener('click',()=>{if(current)toggleFavourite(current)});
 function setVolume(v){els.audio.volume=Number(v)/100;els.volume.value=v;$('expanded-volume').value=v}
 els.volume.addEventListener('input',()=>setVolume(els.volume.value));
 $('expanded-volume').addEventListener('input',()=>setVolume($('expanded-volume').value));
