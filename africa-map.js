@@ -40,7 +40,7 @@ function resize(){
   camera.left=-halfWidth;camera.right=halfWidth;
   camera.top=halfHeight;camera.bottom=-halfHeight;
   camera.position.set(0,0,35);camera.lookAt(0,0,0);
-  camera.updateProjectionMatrix();renderer.setSize(w,h,false);
+  camera.updateProjectionMatrix();renderer.setSize(w,h);
 }
 new ResizeObserver(resize).observe(host);resize();
 function animate(){frame=requestAnimationFrame(animate);renderer.render(scene,camera)}animate();

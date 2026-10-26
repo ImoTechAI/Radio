@@ -36,7 +36,10 @@ jobs:
           for expected in ('THREE.OrthographicCamera', 'camera.left=-halfWidth', 'camera.top=halfHeight', 'function resize()', 'function hover(event)', 'hitTest(event)', 'tooltip.textContent=hit.userData.name', 'bounds.getCenter', 'group.position.set(-centre.x,-centre.y,0)'):
               assert expected in map_js, f'Missing map fit or hover behaviour: {expected}'
           assert '.map-tooltip' in page and '.map-tooltip[hidden]' in page
-          assert 'africa-map.js?v=7' in page
+          assert 'africa-map.js?v=8' in page
+          assert 'renderer.setSize(w,h);' in map_js, 'Canvas CSS size must track container dimensions'
+          assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
+          assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
           assert 'radio.js?v=7' in page
           for expected in ('id="explorer-view"', 'id="directory-view"', 'id="back-to-map"', 'id="browse-all"', 'id="directory-title"'):
               assert expected in page, f'Missing two-view navigation: {expected}'
