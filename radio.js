@@ -39,7 +39,13 @@ function render(){
     logo.onerror=()=>{logo.onerror=null;logo.src='./ARPLogo.png'};
     const meta=make('div');meta.style.minWidth='0';
     meta.append(make('h3','',s.name),make('p','',[s.country,s.tags?.split(',').slice(0,2).join(' · ')].filter(Boolean).join(' · ')));
-    top.append(logo,meta);
+    const equaliser=make('span','station-live-equaliser');
+    equaliser.setAttribute('aria-hidden','true');
+    for(let i=0;i<9;i++)equaliser.append(make('span'));
+    meta.append(equaliser);
+    const artWrap=make('div','station-art-wrap');
+    artWrap.append(logo);
+    top.append(artWrap,meta);
     const actions=make('div','actions');
     const playing=active&&playbackState==='playing';
     const play=make('button','btn play',playing?'Ⅱ Pause':active&&playbackState==='connecting'?'Connecting…':'▶ Listen');
