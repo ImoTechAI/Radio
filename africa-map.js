@@ -13,6 +13,10 @@ const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setClearColor(0,0);
 host.append(renderer.domElement);
 const group=new THREE.Group();scene.add(group);
+group.rotation.x=-0.30;group.rotation.y=-0.12;
+const zoomLimits={min:0.8,max:3.5};
+function setZoom(value){camera.zoom=THREE.MathUtils.clamp(value,zoomLimits.min,zoomLimits.max);camera.updateProjectionMatrix()}
+function zoomBy(factor){setZoom(camera.zoom*factor)}
 const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
 const targets=[];
 const countryGroups=new Map();
@@ -30,10 +34,10 @@ function addPolygon(ring,name,code){
   let country=countryGroups.get(code);
   if(!country){country={group:new THREE.Group(),meshes:[],borders:[],lift:0,target:0,name,code};countryGroups.set(code,country);group.add(country.group)}
   const shape=new THREE.Shape(outline);
-  const mesh=new THREE.Mesh(new THREE.ShapeGeometry(shape),new THREE.MeshBasicMaterial({color:0x253c4d,side:THREE.DoubleSide,transparent:true,opacity:.98}));
-  mesh.position.z=.01;mesh.userData={name,code};
+  const mesh=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:0.20,bevelEnabled:false,curveSegments:1}),[new THREE.MeshLambertMaterial({color:0x253c4d,side:THREE.DoubleSide}),new THREE.MeshLambertMaterial({color:0x15232e,side:THREE.DoubleSide})]);
+  mesh.position.z=0;mesh.userData={name,code};
   country.group.add(mesh);country.meshes.push(mesh);targets.push(mesh);bounds.expandByObject(mesh);
-  const border=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(outline.map(p=>new THREE.Vector3(p.x,p.y,.025))),new THREE.LineBasicMaterial({color:0xa67b39,transparent:true,opacity:.6}));
+  const border=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(outline.map(p=>new THREE.Vector3(p.x,p.y,.215))),new THREE.LineBasicMaterial({color:0xa67b39,transparent:true,opacity:.6}));
   country.group.add(border);country.borders.push(border);
 }
 function setHover(code){
@@ -41,8 +45,9 @@ function setHover(code){
   hoveredCode=code;
   for(const [key,country] of countryGroups){
     const active=key===code;
-    country.target=active ? 0.24 : 0;
-    for(const mesh of country.meshes)mesh.material.color.setHex(active?0x997039:0x253c4d);
+    country.target=active ? 1.4 : 0;
+    for(const mesh of country.meshes)mesh.material[0].color.setHex(active?0xe0a84f:0x253c4d);
+    for(const mesh of country.meshes)mesh.material[1].color.setHex(active?0x80501b:0x15232e);
     for(const border of country.borders){border.material.color.setHex(active?0xffd079:0xa67b39);border.material.opacity=active?1:.6}
   }
 }
@@ -55,8 +60,12 @@ function setSelected(mesh){
 function hitTest(event){const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets)[0]?.object||null}
 function pick(event){const hit=hitTest(event);if(hit)setSelected(hit)}
 function hover(event){if(down||!targets.length){tooltip.hidden=true;setHover(null);return}const hit=hitTest(event);setHover(hit?.userData.code||null);tooltip.hidden=!hit;renderer.domElement.style.cursor=hit?'pointer':'grab';if(!hit)return;tooltip.textContent=hit.userData.name;const rect=host.getBoundingClientRect();tooltip.style.left=Math.max(8,Math.min(event.clientX-rect.left+14,rect.width-tooltip.offsetWidth-8))+'px';tooltip.style.top=Math.max(8,Math.min(event.clientY-rect.top-36,rect.height-40))+'px'}
+renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoomBy(Math.exp(-e.deltaY*0.0012))},{passive:false});
+document.getElementById('map-zoom-in').addEventListener('click',()=>zoomBy(1.25));
+document.getElementById('map-zoom-out').addEventListener('click',()=>zoomBy(1/1.25));
+document.getElementById('map-zoom-reset').addEventListener('click',()=>setZoom(1));
 renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY};drag=false;renderer.domElement.setPointerCapture(e.pointerId)});
-renderer.domElement.addEventListener('pointermove',e=>{if(!down){hover(e);return}tooltip.hidden=true;const dx=e.clientX-down.x;if(Math.abs(dx)>5||Math.abs(e.clientY-down.y)>5)drag=true;if(drag){group.rotation.y=Math.max(-.45,Math.min(.45,group.rotation.y+e.movementX*.003));group.rotation.x=Math.max(-.3,Math.min(.3,group.rotation.x+e.movementY*.003))}});
+renderer.domElement.addEventListener('pointermove',e=>{if(!down){hover(e);return}tooltip.hidden=true;const dx=e.clientX-down.x;if(Math.abs(dx)>5||Math.abs(e.clientY-down.y)>5)drag=true;if(drag){group.rotation.y=Math.max(-.45,Math.min(.45,group.rotation.y+e.movementX*.003));group.rotation.x=Math.max(-.55,Math.min(.55,group.rotation.x+e.movementY*.003))}});
 renderer.domElement.addEventListener('pointerup',e=>{if(!drag)pick(e);down=null;hover(e)});
 renderer.domElement.addEventListener('pointerleave',()=>{tooltip.hidden=true;setHover(null)});
 renderer.domElement.addEventListener('pointercancel',()=>{down=null;drag=false;setHover(null);tooltip.hidden=true});
@@ -73,6 +82,8 @@ function resize(){
   camera.updateProjectionMatrix();renderer.setSize(w,h);
 }
 new ResizeObserver(resize).observe(host);resize();
+const ambient=new THREE.AmbientLight(0xffffff,1.6);scene.add(ambient);
+const keyLight=new THREE.DirectionalLight(0xffd7a0,1.5);keyLight.position.set(-7,12,18);scene.add(keyLight);
 function animate(){frame=requestAnimationFrame(animate);for(const country of countryGroups.values()){country.lift=reducedMotion?country.target:country.lift+(country.target-country.lift)*.18;country.group.position.z=country.lift}renderer.render(scene,camera)}animate();
 async function init(){try{const res=await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');if(!res.ok)throw Error('Map data unavailable');const geo=await res.json();for(const feature of geo.features){const raw=feature.properties?.name||'';const name=aliases[raw]||raw;if(!countries.has(name))continue;const code=countryCode(name);if(!code)continue;const geometry=feature.geometry;if(!geometry)continue;const polys=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];for(const polygon of polys){if(polygon[0])addPolygon(polygon[0],name,code)}}if(!targets.length)throw Error('No countries available');const centre=bounds.getCenter(new THREE.Vector3());mapSize=bounds.getSize(new THREE.Vector3());group.position.set(-centre.x,-centre.y,0);resize();status.textContent='Select a country on the 3D map to explore its stations';}catch(e){status.textContent='3D map data unavailable. Use the country selector below.';host.replaceChildren();cancelAnimationFrame(frame)}}
 init();
