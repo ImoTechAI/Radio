@@ -130,9 +130,7 @@ jobs:
           assert 'id="player-map-shortcut"' in page
           assert '.player-map-shortcut:hover' in page
           assert "$('player-map-shortcut').addEventListener('click'" in js
-          assert 'new THREE.SphereGeometry(.038,12,8)' in map_js
           assert 'for(let i=0;i<24;i++)' in map_js
-          assert 'opacity:.15+.85*((i+1)/24)**1.4' in map_js
           assert 'country.trail.children.length' in map_js
           assert 'if(country.trail){' in map_js
           assert 'country.trail.visible=visible' in map_js
@@ -142,5 +140,8 @@ jobs:
           assert 'ribbon.userData.beamWidth=width' in map_js
           assert 'ribbon.scale.set(length,ribbon.userData.beamWidth,1)' in map_js
           assert 'new THREE.SphereGeometry(.038,12,8)' not in map_js
+          assert '<svg viewBox="0 0 110 116"' in page
+          assert 'M17.7 51.8 L5.9 40.7' in page
+          assert 'M97.4 80.7 L97.0 79.8' in page
           print('Static checks passed')
           PY
