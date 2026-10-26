@@ -51,10 +51,19 @@ function addPolygon(ring,name,code){
   let country=countryGroups.get(code);
   if(!country){country={group:new THREE.Group(),meshes:[],borders:[],rings:[],tracer:null,tracerPath:null,equaliser:[],lift:0,target:0,name,code};countryGroups.set(code,country);group.add(country.group)}
   const shape=new THREE.Shape(outline);
-  const mesh=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:0.20,bevelEnabled:false,curveSegments:1}),[new THREE.MeshLambertMaterial({color:0x253c4d,side:THREE.DoubleSide}),new THREE.MeshLambertMaterial({color:0x15232e,side:THREE.DoubleSide})]);
-  mesh.position.z=0;mesh.userData={name,code};
+  // Shallow, bevelled relief retains the real country outline and existing picking.
+  const geometry=new THREE.ExtrudeGeometry(shape,{depth:.28,steps:1,bevelEnabled:true,bevelThickness:.025,bevelSize:.018,bevelSegments:2,curveSegments:1});
+  geometry.computeVertexNormals();
+  const latitude=ring.reduce((sum,p)=>sum+p[1],0)/ring.length;
+  // Terrain-inspired palette: warmer Sahara, greener equatorial belt,
+  // cooler southern highlands. These are stylised latitude bands, not elevation data.
+  const terrain=Math.abs(latitude)<9?0x29433c:latitude>15?0x49412d:latitude< -19?0x30434a:0x30444a;
+  const top=new THREE.MeshStandardMaterial({color:terrain,roughness:.86,metalness:.12,side:THREE.DoubleSide});
+  const sides=new THREE.MeshStandardMaterial({color:0x15232e,roughness:.55,metalness:.42,side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(geometry,[top,sides]);
+  mesh.position.z=0;mesh.userData={name,code,terrain};
   country.group.add(mesh);country.meshes.push(mesh);targets.push(mesh);bounds.expandByObject(mesh);
-  const border=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(outline.map(p=>new THREE.Vector3(p.x,p.y,.215))),new THREE.LineBasicMaterial({color:0xa67b39,transparent:true,opacity:.6}));
+  const border=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(outline.map(p=>new THREE.Vector3(p.x,p.y,.34))),new THREE.LineBasicMaterial({color:0xc1954b,transparent:true,opacity:.78}));
   country.group.add(border);country.borders.push(border);
 }
 function styleCountry(code){
@@ -63,12 +72,12 @@ function styleCountry(code){
   const live=broadcastCode===code;
   country.target=hovered?1.4:live?.65:0;
   for(const mesh of country.meshes){
-    mesh.material[0].color.setHex(hovered?0xe0a84f:live?0xb58b39:0x253c4d);
+    mesh.material[0].color.setHex(hovered?0xe0a84f:live?0xb58b39:mesh.userData.terrain);
     mesh.material[1].color.setHex(hovered?0x80501b:live?0x5e451e:0x15232e);
   }
   for(const border of country.borders){
-    border.material.color.setHex(hovered?0xffd079:live?0xf8c76c:0xa67b39);
-    border.material.opacity=hovered||live?1:.6;
+    border.material.color.setHex(hovered?0xffe2a0:live?0xffd17a:0xc1954b);
+    border.material.opacity=hovered||live?1:.78;
   }
 }
 function setHover(code){
@@ -199,8 +208,10 @@ function resize(){
   clampPan();
 }
 new ResizeObserver(resize).observe(host);resize();
-const ambient=new THREE.AmbientLight(0xffffff,1.6);scene.add(ambient);
-const keyLight=new THREE.DirectionalLight(0xffd7a0,1.5);keyLight.position.set(-7,12,18);scene.add(keyLight);
+// Balanced ambient fill plus raking gold and cool rim light expose bevelled edges.
+const ambient=new THREE.AmbientLight(0xc4d5df,1.15);scene.add(ambient);
+const keyLight=new THREE.DirectionalLight(0xffd49a,2.0);keyLight.position.set(-9,11,14);scene.add(keyLight);
+const rimLight=new THREE.DirectionalLight(0x8eb4cf,.9);rimLight.position.set(10,-7,8);scene.add(rimLight);
 function animate(){
   frame=requestAnimationFrame(animate);
   const time=broadcastClock.getElapsedTime();
