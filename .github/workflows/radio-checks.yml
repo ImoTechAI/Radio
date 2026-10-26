@@ -62,7 +62,7 @@ jobs:
           assert '.directory-heading::before' in page and '.expanded-card::before' in page
           for expected in ('body.explorer-active{overflow:hidden}', 'body.explorer-active>header{display:none}', 'class="explorer-toolbar"', 'class="explorer-logo"', 'background-size:cover', 'height:calc(100dvh - var(--explorer-player-height,90px))'):
               assert expected in page, f'Missing immersive layout: {expected}'
-          for expected in ('const countryGroups=new Map()', 'function setHover(code)', 'country.group.position.z=country.lift', 'country.target=hovered?1.4:live?.65:0', 'border.material.color.setHex(hovered?0xffd079:live?0xf8c76c:0xa67b39)', "setHover(hit?.userData.code||null)"):
+          for expected in ('const countryGroups=new Map()', 'function setHover(code)', 'country.group.position.z=country.lift', 'country.target=hovered?1.4:live?.65:0', 'border.material.color.setHex(hovered?0xffe2a0:live?0xffd17a:0xc1954b)', "setHover(hit?.userData.code||null)"):
               assert expected in map_js, f'Missing 3D hover elevation: {expected}'
           for expected in ("document.body.classList.toggle('explorer-active',!showDirectory)", 'function fitExplorerPlayer()', 'new ResizeObserver(fitExplorerPlayer)'):
               assert expected in js, f'Missing viewport/player integration: {expected}'
