@@ -68,7 +68,7 @@ jobs:
               assert expected in js, f'Missing viewport/player integration: {expected}'
           for expected in ('id="map-zoom-in"', 'id="map-zoom-out"', 'id="map-zoom-reset"', 'class="map-zoom-controls"'):
               assert expected in page, f'Missing zoom UI: {expected}'
-          for expected in ('THREE.ExtrudeGeometry', 'depth:0.20', 'country.target=hovered?1.4:live?.65:0', "addEventListener('wheel'", 'function setZoom(value)', 'zoomLimits={min:0.8,max:3.5}', "getElementById('map-zoom-reset')"):
+          for expected in ('THREE.ExtrudeGeometry', 'depth:.28', 'country.target=hovered?1.4:live?.65:0', "addEventListener('wheel'", 'function setZoom(value)', 'zoomLimits={min:0.8,max:3.5}', "getElementById('map-zoom-reset')"):
               assert expected in map_js, f'Missing raised geometry or zoom: {expected}'
           for expected in ('const pan=new THREE.Vector2()', 'function clampPan()', "mode:camera.zoom>1.01&&!e.shiftKey?'pan':'rotate'", "if(down.mode==='pan')", 'pan.x+=dx*', 'pan.y-=dy*', 'pan.set(0,0);setZoom(1)'):
               assert expected in map_js, f'Missing zoomed map pan: {expected}'
