@@ -103,8 +103,8 @@ $('expanded-prev').addEventListener('click',()=>stepStation(-1));
 $('expanded-next').addEventListener('click',()=>stepStation(1));
 $('retry-stream').addEventListener('click',()=>{if(!current)return;els.audio.load();setPlaybackState('connecting');els.audio.play().catch(playError)});
 $('expanded-retry').addEventListener('click',()=>$('retry-stream').click());
-function closeExpanded(){if($('player-expanded').hidden)return;$('player-expanded').hidden=true;document.body.style.overflow='';lastFocused?.focus()}
-$('expand-player').addEventListener('click',()=>{lastFocused=document.activeElement;syncExpanded();$('player-expanded').hidden=false;document.body.style.overflow='hidden';$('close-expanded').focus()});
+function closeExpanded(){if($('player-expanded').hidden)return;$('player-expanded').hidden=true;window.dispatchEvent(new CustomEvent('radio:expanded',{detail:{open:false}}));document.body.style.overflow='';lastFocused?.focus()}
+$('expand-player').addEventListener('click',()=>{lastFocused=document.activeElement;syncExpanded();$('player-expanded').hidden=false;window.dispatchEvent(new CustomEvent('radio:expanded',{detail:{open:true,state:playbackState,code:current?.countrycode?.toUpperCase()||null}}));document.body.style.overflow='hidden';$('close-expanded').focus()});
 $('close-expanded').addEventListener('click',closeExpanded);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeExpanded();if(e.key==='Tab'&&!$('player-expanded').hidden){const controls=[...$('player-expanded').querySelectorAll('button:not([hidden]),input')];const first=controls[0],last=controls[controls.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
 $('sort').addEventListener('change',()=>{if(mode==='favourites')render();else load()});
