@@ -125,10 +125,14 @@ function addLiveEffects(country){
     country.tracerPath={points:path,lengths,total:lengths[lengths.length-1]};
     const glow=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(path.slice(0,-1)),new THREE.LineBasicMaterial({color:0xe5ac42,transparent:true,opacity:.38,depthTest:false}));
     glow.renderOrder=6;glow.visible=false;country.group.add(glow);country.borderGlow=glow;
-    const trailPoints=Array.from({length:19},()=>new THREE.Vector3());
-    const trail=new THREE.Line(new THREE.BufferGeometry().setFromPoints(trailPoints),new THREE.LineBasicMaterial({color:0xffd477,transparent:true,opacity:.95,depthTest:false}));
-    trail.renderOrder=8;trail.visible=false;country.group.add(trail);country.trail=trail;
-    const dot=new THREE.Mesh(new THREE.SphereGeometry(.11,12,8),new THREE.MeshBasicMaterial({color:0xffe8a0,depthTest:false}));
+    // Separate short segments allow a bright head and a visibly fading tail.
+    const trail=new THREE.Group();
+    for(let i=0;i<24;i++){
+      const segment=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),new THREE.LineBasicMaterial({color:0xffe9a0,transparent:true,opacity:.15+.85*((i+1)/24)**1.4,depthTest:false}));
+      segment.renderOrder=8;trail.add(segment);
+    }
+    trail.visible=false;country.group.add(trail);country.trail=trail;
+    const dot=new THREE.Mesh(new THREE.SphereGeometry(.038,12,8),new THREE.MeshBasicMaterial({color:0xfff1bd,depthTest:false}));
     dot.renderOrder=9;dot.visible=false;country.group.add(dot);country.tracer=dot;
   }
   const box=new THREE.Box3();
@@ -218,12 +222,16 @@ function animate(){
           return path.points[start].clone().lerp(path.points[end],span?(d-path.lengths[start])/span:0);
         };
         country.tracer.position.copy(pointAt(head));
-        const positions=country.trail.geometry.attributes.position;
-        for(let i=0;i<positions.count;i++){
-          const p=pointAt(head-(positions.count-1-i)*path.total*.0025);
-          positions.setXYZ(i,p.x,p.y,p.z);
+        const count=country.trail.children.length;
+        for(let i=0;i<count;i++){
+          const segment=country.trail.children[i];
+          const from=pointAt(head-(count-i)*path.total*.004);
+          const to=pointAt(head-(count-i-1)*path.total*.004);
+          const positions=segment.geometry.attributes.position;
+          positions.setXYZ(0,from.x,from.y,from.z);
+          positions.setXYZ(1,to.x,to.y,to.z);
+          positions.needsUpdate=true;
         }
-        positions.needsUpdate=true;
       }
     }
     for(let i=0;i<country.equaliser.length;i++){
