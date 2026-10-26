@@ -23,7 +23,24 @@ $('clear-recent').addEventListener('click',clearRecentStations);
 let mode='africa', stations=[], offset=0, busy=false, current=null, requestId=0, timer, playbackState='idle', lastFocused=null;
 const GENRES=[['','All'],['afrobeats','Afrobeats'],['gospel','Gospel'],['news','News'],['talk','Talk'],['jazz','Jazz'],['reggae','Reggae'],['music','Music']];
 function updateGenreChips(){const box=$('genre-chips');box.replaceChildren();for(const [tag,label] of GENRES){const button=make('button','genre-chip',label);button.type='button';button.setAttribute('aria-pressed',String(els.genre.value===tag));button.addEventListener('click',()=>{els.genre.value=tag;updateGenreChips();load()});box.append(button)}}
-function setPlaybackState(state){playbackState=state;window.dispatchEvent(new CustomEvent('radio:playback',{detail:{state,code:current?.countrycode?.toUpperCase()||null,name:current?.name||''}}));const messages={idle:'Ready to listen',connecting:'Connecting…',buffering:'Buffering…',playing:'Live',paused:'Paused',unavailable:'Stream unavailable or blocked. Try again.'};els.playback.textContent=messages[state]||state;$('live-indicator').hidden=state!=='playing';$('retry-stream').hidden=state!=='unavailable';$('expanded-retry').hidden=state!=='unavailable';$('expanded-status').textContent=messages[state]||state;els.toggle.textContent=state==='playing'?'Ⅱ':'▶';$('expanded-toggle').textContent=els.toggle.textContent;if(stations.length)render();}
+// Preserve station DOM nodes while playback events change; recreating cards
+// on every 'playing'/'waiting' event restarted CSS animations repeatedly.
+function syncStationAnimations(animating){
+  els.stations.classList.toggle('has-playing',animating);
+  for(const card of els.stations.querySelectorAll('.station')){
+    const active=card.dataset.stationId===current?.stationuuid;
+    card.classList.toggle('is-current',active);
+    card.classList.toggle('is-playing',active&&animating);
+    const play=card.querySelector('.play');
+    if(play){
+      const isPlaying=active&&animating;
+      play.textContent=isPlaying?'Ⅱ Pause':active&&playbackState==='connecting'?'Connecting…':'▶ Listen';
+      play.setAttribute('aria-pressed',String(isPlaying));
+      play.setAttribute('aria-label',(isPlaying?'Pause ':'Listen to ')+(card.dataset.stationName||'station'));
+    }
+  }
+}
+function setPlaybackState(state){playbackState=state;const animating=!!current&&!els.audio.paused&&(state==='playing'||state==='buffering');$('player-expanded').classList.toggle('is-live',animating);syncStationAnimations(animating);window.dispatchEvent(new CustomEvent('radio:playback',{detail:{state,code:current?.countrycode?.toUpperCase()||null,name:current?.name||''}}));const messages={idle:'Ready to listen',connecting:'Connecting…',buffering:'Buffering…',playing:'Live',paused:'Paused',unavailable:'Stream unavailable or blocked. Try again.'};els.playback.textContent=messages[state]||state;$('live-indicator').hidden=state!=='playing';$('retry-stream').hidden=state!=='unavailable';$('expanded-retry').hidden=state!=='unavailable';$('expanded-status').textContent=messages[state]||state;els.toggle.textContent=state==='playing'?'Ⅱ':'▶';$('expanded-toggle').textContent=els.toggle.textContent;}
 function syncExpanded(){syncExpandedFavourite();const art=$('player-art');$('expanded-art').src=art.src;$('expanded-name').textContent=els.now.textContent;$('expanded-status').textContent=els.playback.textContent;$('expanded-toggle').textContent=els.toggle.textContent}
 function sortStations(items){const sort=$('sort').value;if(sort==='name')return items.sort((a,b)=>a.name.localeCompare(b.name));if(sort==='recent')return items.sort((a,b)=>(Number(b.lastchangetime)||Date.parse(b.lastchangetime_iso8601||'')||0)-(Number(a.lastchangetime)||Date.parse(a.lastchangetime_iso8601||'')||0));return items.sort((a,b)=>(Number(b.clickcount)||0)-(Number(a.clickcount)||0))}
 
@@ -37,11 +54,11 @@ function stationUrl(s){return s.url_resolved||s.url}
 function make(tag,cls,txt){const el=document.createElement(tag);if(cls)el.className=cls;if(txt!==undefined)el.textContent=txt;return el}
 function render(){
   els.stations.replaceChildren();
-  els.stations.classList.toggle('has-playing',playbackState==='playing'&&!!current);
+  els.stations.classList.toggle('has-playing',(playbackState==='playing'||playbackState==='buffering')&&!els.audio.paused&&!!current);
   const frag=document.createDocumentFragment();
   for(const s of sortStations([...stations])){
     const active=current?.stationuuid===s.stationuuid;
-    const card=make('article','station'+(active?' is-current':'')+(active&&playbackState==='playing'?' is-playing':''));
+    const card=make('article','station'+(active?' is-current':'')+(active&&(playbackState==='playing'||playbackState==='buffering')&&!els.audio.paused?' is-playing':''));card.dataset.stationId=s.stationuuid;card.dataset.stationName=s.name;
     const top=make('div','station-top');
     const logo=make('img','fallback-art');
     logo.alt='';logo.loading='lazy';logo.referrerPolicy='no-referrer';
@@ -57,7 +74,7 @@ function render(){
     artWrap.append(logo);
     top.append(artWrap,meta);
     const actions=make('div','actions');
-    const playing=active&&playbackState==='playing';
+    const playing=active&&(playbackState==='playing'||playbackState==='buffering')&&!els.audio.paused;
     const play=make('button','btn play',playing?'Ⅱ Pause':active&&playbackState==='connecting'?'Connecting…':'▶ Listen');
     play.type='button';play.setAttribute('aria-pressed',String(playing));play.setAttribute('aria-label',(playing?'Pause ':'Listen to ')+s.name);
     play.addEventListener('click',()=>playStation(s));
@@ -109,8 +126,8 @@ window.addEventListener('hashchange',route);
 window.addEventListener('radio:country',event=>{const code=event.detail?.code;if(!AFRICA.includes(code))return;location.hash='#/country/'+code;if(location.hash==='#/country/'+code)route()});
 $('back-to-map').addEventListener('click',()=>{location.hash='#/explore';route();window.scrollTo({top:0,behavior:'smooth'})});
 $('browse-all').addEventListener('click',()=>{location.hash='#/all';route();window.scrollTo({top:0,behavior:'smooth'})});
-els.audio.addEventListener('playing',()=>{setPlaybackState('playing');render()});
-els.audio.addEventListener('pause',()=>{if(playbackState!=='unavailable')setPlaybackState('paused');render()});
+els.audio.addEventListener('playing',()=>setPlaybackState('playing'));
+els.audio.addEventListener('pause',()=>{if(playbackState!=='unavailable')setPlaybackState('paused')});
 els.audio.addEventListener('error',playError);
 els.audio.addEventListener('waiting',()=>{if(current)setPlaybackState('buffering')});
 els.audio.addEventListener('stalled',()=>{if(current)setPlaybackState('buffering')});
