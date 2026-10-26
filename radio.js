@@ -64,7 +64,7 @@ function showView(code){
   const isCountry=!!code&&AFRICA.includes(code);
   const showDirectory=isCountry||code==='all';
   explorer.hidden=showDirectory;directory.hidden=!showDirectory;
-  main.classList.toggle('explorer-main',!showDirectory);
+  main.classList.toggle('explorer-main',!showDirectory);document.body.classList.toggle('explorer-active',!showDirectory);
   if(!showDirectory){document.title='African Radio Player — Africa Explorer';return}
   mode=isCountry?'africa':'world';
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
@@ -76,6 +76,8 @@ function showView(code){
   document.title=name+' Radio — African Radio Player';
   load();
 }
+function fitExplorerPlayer(){document.documentElement.style.setProperty('--explorer-player-height',Math.ceil(document.querySelector('.player').getBoundingClientRect().height)+'px')}
+new ResizeObserver(fitExplorerPlayer).observe(document.querySelector('.player'));fitExplorerPlayer();
 function route(){const match=location.hash.match(/^#\/(country\/([A-Z]{2})|all)$/);showView(match?(match[2]||'all'):null)}
 window.addEventListener('hashchange',route);
 window.addEventListener('radio:country',event=>{const code=event.detail?.code;if(!AFRICA.includes(code))return;location.hash='#/country/'+code;if(location.hash==='#/country/'+code)route()});

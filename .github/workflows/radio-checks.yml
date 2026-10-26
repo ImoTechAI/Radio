@@ -36,11 +36,11 @@ jobs:
           for expected in ('THREE.OrthographicCamera', 'camera.left=-halfWidth', 'camera.top=halfHeight', 'function resize()', 'function hover(event)', 'hitTest(event)', 'tooltip.textContent=hit.userData.name', 'bounds.getCenter', 'group.position.set(-centre.x,-centre.y,0)'):
               assert expected in map_js, f'Missing map fit or hover behaviour: {expected}'
           assert '.map-tooltip' in page and '.map-tooltip[hidden]' in page
-          assert 'africa-map.js?v=8' in page
+          assert 'africa-map.js?v=11' in page
           assert 'renderer.setSize(w,h);' in map_js, 'Canvas CSS size must track container dimensions'
           assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
           assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
-          assert 'radio.js?v=10' in page
+          assert 'radio.js?v=11' in page
           for expected in ('id="explorer-view"', 'id="directory-view"', 'id="back-to-map"', 'id="browse-all"', 'id="directory-title"'):
               assert expected in page, f'Missing two-view navigation: {expected}'
           for expected in ('function showView(code)', 'function route()', "location.hash='#/country/'", "location.hash='#/explore'", "window.addEventListener('hashchange',route)"):
@@ -51,7 +51,7 @@ jobs:
               assert expected in js, f'Missing Phase 4 logic: {expected}'
           assert 'grid-template-columns:repeat(2,minmax(0,1fr))' in page, 'Missing tablet/mobile cards'
           assert 'grid-template-columns:1fr' in page, 'Missing narrow-screen cards'
-          assert 'africa-map.js?v=8' in page, 'Phase 3 map must be unchanged'
+          assert 'africa-map.js?v=11' in page, 'Phase 3 map must be unchanged'
           assert '<img class="brand-logo" src="./ARPLogo.png"' in page
           assert 'id="clear-recent"' in page
           assert 'function clearRecentStations()' in js
@@ -59,5 +59,11 @@ jobs:
           assert "$('clear-recent').addEventListener('click',clearRecentStations)" in js
           assert '.map-wrap::before' in page and 'pointer-events:none;z-index:2' in page
           assert '.directory-heading::before' in page and '.expanded-card::before' in page
+          for expected in ('body.explorer-active{overflow:hidden}', 'body.explorer-active>header{display:none}', 'class="explorer-toolbar"', 'class="explorer-logo"', 'background-size:cover', 'height:calc(100dvh - var(--explorer-player-height,90px))'):
+              assert expected in page, f'Missing immersive layout: {expected}'
+          for expected in ('const countryGroups=new Map()', 'function setHover(code)', 'country.group.position.z=country.lift', 'country.target=active ? 0.24 : 0', 'border.material.color.setHex(active?0xffd079:0xa67b39)', "setHover(hit?.userData.code||null)"):
+              assert expected in map_js, f'Missing 3D hover elevation: {expected}'
+          for expected in ("document.body.classList.toggle('explorer-active',!showDirectory)", 'function fitExplorerPlayer()', 'new ResizeObserver(fitExplorerPlayer)'):
+              assert expected in js, f'Missing viewport/player integration: {expected}'
           print('Static checks passed')
           PY
