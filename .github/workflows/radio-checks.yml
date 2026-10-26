@@ -130,5 +130,8 @@ jobs:
           assert 'id="player-map-shortcut"' in page
           assert '.player-map-shortcut:hover' in page
           assert "$('player-map-shortcut').addEventListener('click'" in js
+          assert '<svg viewBox="0 0 110 120"' in page
+          assert 'M27 13 L38 7' in page and 'M97 81 L103 85' in page
+          assert 'player-map-shortcut:hover' in page
           print('Static checks passed')
           PY
