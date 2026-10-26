@@ -97,5 +97,9 @@ jobs:
           assert '#expanded-favourite{position:absolute;top:14px;left:14px;' in page
           assert "function syncExpandedFavourite()" in js
           assert "$('expanded-favourite').addEventListener('click'" in js
+          assert 'id="expanded-map"' in page
+          assert '#expanded-map{position:absolute;top:16px;left:50%' in page
+          assert "$('expanded-map').addEventListener('click'" in js
+          assert "location.hash='#/explore'" in js
           print('Static checks passed')
           PY
