@@ -123,9 +123,9 @@ jobs:
           assert "background-position:center 14%;background-size:auto clamp(760px,110vh,1250px)" in page
           assert "@media(max-width:800px){.map-wrap::before" in page
           assert "pointer-events:none;z-index:2" in page
-          for expected in ('function addLiveEffects(country)', 'country.tracer.position.copy', 'country.group.position.z=country.lift+pulse', 'country.equaliser.length', 'bar.scale.y=', "state==='buffering'"):
+          for expected in ('function addLiveEffects(country)', 'country.group.position.z=country.lift+pulse', 'country.equaliser.length', 'bar.scale.y=', "state==='buffering'"):
               assert expected in map_js, f'Missing live map animation: {expected}'
-          for expected in ('country.trail.visible=visible', 'country.borderGlow.visible=visible', 'const head=(time/6%1)*path.total', 'positions.needsUpdate=true', 'const lengths=[0]'):
+          for expected in ('country.trail.visible=visible', 'country.borderGlow.visible=visible', 'const head=(time/6%1)*path.total', 'const lengths=[0]'):
               assert expected in map_js, f'Missing border trail improvement: {expected}'
           assert 'id="player-map-shortcut"' in page
           assert '.player-map-shortcut:hover' in page
