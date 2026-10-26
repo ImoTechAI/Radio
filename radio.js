@@ -6,8 +6,10 @@ const els = {search:$('search'),country:$('country'),genre:$('genre'),status:$('
 const storeKey='african-radio-favourites-v1';
 const recentKey='african-radio-recent-v1';
 function recentStations(){try{const data=JSON.parse(localStorage.getItem(recentKey)||'[]');return Array.isArray(data)?data.filter(validStation).slice(0,12):[]}catch{return []}}
+function clearRecentStations(){try{localStorage.removeItem(recentKey)}catch{els.status.textContent='Unable to clear recently played stations in this browser.';return}renderRecent()}
 function rememberStation(s){try{localStorage.setItem(recentKey,JSON.stringify([s,...recentStations().filter(x=>x.stationuuid!==s.stationuuid)].slice(0,12)))}catch{}}
 function renderRecent(){const box=$('recent-stations');if(!box)return;box.replaceChildren();const items=recentStations();$('recent-section').hidden=!items.length;for(const s of items){const b=make('button','btn',s.name);b.type='button';b.addEventListener('click',()=>playStation(s));box.append(b)}}
+$('clear-recent').addEventListener('click',clearRecentStations);
 let mode='africa', stations=[], offset=0, busy=false, current=null, requestId=0, timer, playbackState='idle', lastFocused=null;
 const GENRES=[['','All'],['afrobeats','Afrobeats'],['gospel','Gospel'],['news','News'],['talk','Talk'],['jazz','Jazz'],['reggae','Reggae'],['music','Music']];
 function updateGenreChips(){const box=$('genre-chips');box.replaceChildren();for(const [tag,label] of GENRES){const button=make('button','genre-chip',label);button.type='button';button.setAttribute('aria-pressed',String(els.genre.value===tag));button.addEventListener('click',()=>{els.genre.value=tag;updateGenreChips();load()});box.append(button)}}
