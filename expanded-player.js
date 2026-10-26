@@ -19,7 +19,7 @@ window.addEventListener('radio:playback',e=>{
 });
 window.addEventListener('radio:expanded',e=>{
   const open=!!e.detail?.open;
-  if(open){start();if(e.detail?.code)setStation(e.detail.code);setPlaying(e.detail?.state)}
+  if(open){start();setStation(e.detail?.code||null);setPlaying(e.detail?.state)}
   else stop();
 });
 stage.addEventListener('pointermove',e=>{
