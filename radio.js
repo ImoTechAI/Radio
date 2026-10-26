@@ -49,7 +49,15 @@ function render(){
     fav.type='button';fav.setAttribute('aria-pressed',String(saved));fav.setAttribute('aria-label',(saved?'Remove favourite ':'Save favourite ')+s.name);
     fav.title=saved?'Remove from favourites':'Add to favourites';
     fav.addEventListener('click',()=>toggleFavourite(s));
-    actions.append(play);card.append(top,fav,actions);frag.append(card);
+    const expand=make('button','btn station-expand','⛶');
+    expand.type='button';
+    expand.setAttribute('aria-label','Expand player for '+s.name);
+    expand.title='Expand player';
+    expand.addEventListener('click',()=>{
+      if(current?.stationuuid!==s.stationuuid)playStation(s);
+      $('expand-player').click();
+    });
+    actions.append(play);card.append(top,fav,expand,actions);frag.append(card);
   }
   els.stations.append(frag);
   if(!stations.length&&!busy)els.status.textContent=mode==='favourites'?'No favourites saved yet.':'No stations found. Try another search or filter.';
