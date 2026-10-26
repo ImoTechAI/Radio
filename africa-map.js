@@ -107,7 +107,8 @@ function resize(){
   camera.left=-halfWidth;camera.right=halfWidth;
   camera.top=halfHeight;camera.bottom=-halfHeight;
   camera.position.set(0,0,35);camera.lookAt(0,0,0);
-  camera.updateProjectionMatrix();renderer.setSize(w,h);clampPan();
+  camera.updateProjectionMatrix();renderer.setSize(w,h);
+  clampPan();
 }
 new ResizeObserver(resize).observe(host);resize();
 const ambient=new THREE.AmbientLight(0xffffff,1.6);scene.add(ambient);
