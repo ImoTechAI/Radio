@@ -23,8 +23,29 @@ function matches(s){const q=els.search.value.trim().toLowerCase();return(!q||s.n
 function playStation(s){if(current?.stationuuid===s.stationuuid){if(els.audio.paused)els.audio.play().catch(playError);else els.audio.pause();return}current=s;rememberStation(s);renderRecent();const art=$('player-art');if(art){art.src=/^https:\/\//i.test(s.favicon||'')?s.favicon:'./ARPLogo.png';art.alt=s.name+' artwork';art.onerror=()=>{art.onerror=null;art.src='./ARPLogo.png'}}els.audio.src=stationUrl(s);els.now.textContent=s.name;els.playback.textContent='Connecting…';els.toggle.disabled=false;els.audio.play().catch(playError);render()}
 function playError(){els.playback.textContent='Stream unavailable or blocked by your browser. Try another station.';els.toggle.textContent='▶';render()}
 $('next-station')?.addEventListener('click',()=>{const i=stations.findIndex(s=>s.stationuuid===current?.stationuuid);if(stations.length)playStation(stations[(i+1+stations.length)%stations.length])});
-window.addEventListener('radio:country',event=>{const code=event.detail?.code;if(!AFRICA.includes(code))return;mode='africa';document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode==='africa')));populateCountries();els.country.value=code;els.search.value='';els.genre.value='';load();document.querySelector('[aria-label="Station directory"]')?.scrollIntoView({behavior:'smooth',block:'start'})});
+function showView(code){
+  const explorer=$('explorer-view'),directory=$('directory-view'),main=document.querySelector('main');
+  const isCountry=!!code&&AFRICA.includes(code);
+  const showDirectory=isCountry||code==='all';
+  explorer.hidden=showDirectory;directory.hidden=!showDirectory;
+  main.classList.toggle('explorer-main',!showDirectory);
+  if(!showDirectory){document.title='African Radio Player — Africa Explorer';return}
+  mode=isCountry?'africa':'world';
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+  populateCountries();els.country.value=isCountry?code:'';
+  els.search.value='';els.genre.value='';
+  const name=isCountry?new Intl.DisplayNames(['en'],{type:'region'}).of(code):'Worldwide';
+  $('directory-title').textContent=name+' Radio Stations';
+  $('directory-subtitle').textContent=isCountry?'Explore live radio from '+name+'.':'Browse radio stations around the world.';
+  document.title=name+' Radio — African Radio Player';
+  load();
+}
+function route(){const match=location.hash.match(/^#\/(country\/([A-Z]{2})|all)$/);showView(match?(match[2]||'all'):null)}
+window.addEventListener('hashchange',route);
+window.addEventListener('radio:country',event=>{const code=event.detail?.code;if(!AFRICA.includes(code))return;location.hash='#/country/'+code;if(location.hash==='#/country/'+code)route()});
+$('back-to-map').addEventListener('click',()=>{location.hash='#/explore';route();window.scrollTo({top:0,behavior:'smooth'})});
+$('browse-all').addEventListener('click',()=>{location.hash='#/all';route();window.scrollTo({top:0,behavior:'smooth'})});
 els.audio.addEventListener('playing',()=>{els.playback.textContent='Live';els.toggle.textContent='Ⅱ';render()});els.audio.addEventListener('pause',()=>{els.toggle.textContent='▶';if(current)els.playback.textContent='Paused';render()});els.audio.addEventListener('error',playError);els.audio.addEventListener('waiting',()=>{els.playback.textContent='Buffering…'});els.toggle.addEventListener('click',()=>{if(!current)return;if(els.audio.paused)els.audio.play().catch(playError);else els.audio.pause()});els.volume.addEventListener('input',()=>{els.audio.volume=Number(els.volume.value)/100});els.audio.volume=.75;
 document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.mode;document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));populateCountries();load()}));
 function populateCountries(){const old=els.country.value;els.country.replaceChildren(new Option('All countries',''));const codes=mode==='africa'?AFRICA:['NG','GH','KE','ZA','EG','MA','US','GB','FR','DE','BR','IN','AU','CA','JP',...AFRICA];const names=new Intl.DisplayNames(['en'],{type:'region'});for(const code of [...new Set(codes)].sort((a,b)=>names.of(a).localeCompare(names.of(b))))els.country.add(new Option(names.of(code),code));if([...els.country.options].some(o=>o.value===old))els.country.value=old}
-els.search.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>load(),350)});els.country.addEventListener('change',()=>load());els.genre.addEventListener('change',()=>load());els.more.addEventListener('click',()=>load(els.more.textContent!=='Retry'));$('year').textContent=new Date().getFullYear();populateCountries();els.country.value='NG';renderRecent();load();
+els.search.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>load(),350)});els.country.addEventListener('change',()=>load());els.genre.addEventListener('change',()=>load());els.more.addEventListener('click',()=>load(els.more.textContent!=='Retry'));$('year').textContent=new Date().getFullYear();populateCountries();els.country.value='NG';renderRecent();route();

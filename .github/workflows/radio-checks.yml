@@ -33,9 +33,14 @@ jobs:
               assert expected in map_js, f'Missing 3D map capability: {expected}'
           for expected in ('recentStations', 'rememberStation', 'next-station', 'radio:country'):
               assert expected in js, f'Missing enhanced player capability: {expected}'
-          for expected in ('THREE.OrthographicCamera', 'camera.left=-visibleHalfWidth', 'camera.top=visibleHalfHeight', 'function resize()', 'function hover(event)', 'hitTest(event)', 'tooltip.textContent=hit.userData.name'):
+          for expected in ('THREE.OrthographicCamera', 'camera.left=-halfWidth', 'camera.top=halfHeight', 'function resize()', 'function hover(event)', 'hitTest(event)', 'tooltip.textContent=hit.userData.name', 'bounds.getCenter', 'group.position.set(-centre.x,-centre.y,0)'):
               assert expected in map_js, f'Missing map fit or hover behaviour: {expected}'
           assert '.map-tooltip' in page and '.map-tooltip[hidden]' in page
-          assert 'africa-map.js?v=6' in page
+          assert 'africa-map.js?v=7' in page
+          assert 'radio.js?v=7' in page
+          for expected in ('id="explorer-view"', 'id="directory-view"', 'id="back-to-map"', 'id="browse-all"', 'id="directory-title"'):
+              assert expected in page, f'Missing two-view navigation: {expected}'
+          for expected in ('function showView(code)', 'function route()', "location.hash='#/country/'", "location.hash='#/explore'", "window.addEventListener('hashchange',route)"):
+              assert expected in js, f'Missing country navigation: {expected}'
           print('Static checks passed')
           PY
