@@ -75,7 +75,7 @@ function showView(code){
   const showDirectory=isCountry||code==='all';
   explorer.hidden=showDirectory;directory.hidden=!showDirectory;
   main.classList.toggle('explorer-main',!showDirectory);document.body.classList.toggle('explorer-active',!showDirectory);
-  if(!showDirectory){document.title='African Radio Player — Africa Explorer';return}
+  if(!showDirectory){document.title='TUNE.AFRICAN — Africa Explorer';return}
   mode=isCountry?'africa':'world';
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   populateCountries();els.country.value=isCountry?code:'';
@@ -83,7 +83,7 @@ function showView(code){
   const name=isCountry?new Intl.DisplayNames(['en'],{type:'region'}).of(code):'Worldwide';
   $('directory-title').textContent=name+' Radio Stations';
   $('directory-subtitle').textContent=isCountry?'Explore live radio from '+name+'.':'Browse radio stations around the world.';
-  document.title=name+' Radio — African Radio Player';
+  document.title=name+' Radio — TUNE.AFRICAN';
   load();
 }
 function fitExplorerPlayer(){document.documentElement.style.setProperty('--explorer-player-height',Math.ceil(document.querySelector('.player').getBoundingClientRect().height)+'px')}

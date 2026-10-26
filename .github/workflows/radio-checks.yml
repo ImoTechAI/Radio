@@ -23,7 +23,7 @@ jobs:
           from pathlib import Path
           page=Path('index.html').read_text()
           js=Path('radio.js').read_text()
-          for expected in ('<title>African Radio Player</title>', 'ARPLogo.png', 'favi.png', 'radio.js', 'id="stations"', 'id="audio"', 'id="search"', 'id="country"', 'id="toggle"'):
+          for expected in ('<title>TUNE.AFRICAN</title>', 'ARPLogo.png', 'favi.png', 'radio.js', 'id="stations"', 'id="audio"', 'id="search"', 'id="country"', 'id="toggle"'):
               assert expected in page, f'Missing page element: {expected}'
           for expected in ('localStorage', 'fetchStations', 'playStation', 'favourites()', 'aria-pressed'):
               assert expected in js, f'Missing player capability: {expected}'
