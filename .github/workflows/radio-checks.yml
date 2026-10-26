@@ -142,5 +142,8 @@ jobs:
           assert 'ribbon.userData.beamWidth=width' in map_js
           assert 'ribbon.scale.set(length,ribbon.userData.beamWidth,1)' in map_js
           assert 'new THREE.SphereGeometry(.038,12,8)' not in map_js
+          assert '<svg viewBox="0 0 110 116"' in page
+          assert 'M17.7 51.8 L5.9 40.7' in page
+          assert 'M97.4 80.7 L97.0 79.8' in page
           print('Static checks passed')
           PY
