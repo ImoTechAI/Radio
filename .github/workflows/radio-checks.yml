@@ -41,7 +41,7 @@ jobs:
           assert 'renderer.setSize(w,h);' in map_js, 'Canvas CSS size must track container dimensions'
           assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
           assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
-          assert 'radio.js?v=19' in page
+          assert 'radio.js?v=21' in page
           for expected in ('id="explorer-view"', 'id="directory-view"', 'id="back-to-map"', 'id="browse-all"', 'id="directory-title"'):
               assert expected in page, f'Missing two-view navigation: {expected}'
           for expected in ('function showView(code)', 'function route()', "location.hash='#/country/'", "location.hash='#/explore'", "window.addEventListener('hashchange',route)"):
@@ -80,10 +80,10 @@ jobs:
           assert '.map-broadcast-label[hidden]' in page
           assert '.grid.has-playing .station:not(.is-playing) .play' in page
           assert '.grid.has-playing .station.is-playing .play' in page
-          for expected in ("els.stations.classList.toggle('has-playing',playbackState==='playing'&&!!current)", "' is-playing'", "play.setAttribute('aria-pressed',String(playing))", "if(stations.length)render()"):
+          for expected in ("els.stations.classList.toggle('has-playing',animating)", "card.classList.toggle('is-playing',active&&animating)", "play.setAttribute('aria-pressed',String(playing))", "syncStationAnimations(animating)"):
               assert expected in js, f'Missing active station button emphasis: {expected}'
           expanded=Path('expanded-player.js').read_text()
-          for expected in ('id="expanded-stage"', 'id="expanded-country"', 'id="expanded-equaliser"', 'expanded-player.js?v=1', '@media(prefers-reduced-motion:reduce)', 'radio.js?v=19'):
+          for expected in ('id="expanded-stage"', 'id="expanded-country"', 'id="expanded-equaliser"', 'expanded-player.js?v=1', '@media(prefers-reduced-motion:reduce)', 'radio.js?v=21'):
               assert expected in page, f'Missing expanded player animation UI: {expected}'
           for expected in ('THREE.WebGLRenderer', 'THREE.TorusGeometry', "addEventListener('radio:playback'", "addEventListener('radio:expanded'", 'function resetTilt()', 'function stop()', 'if(reduced.matches)resetTilt()'):
               assert expected in expanded, f'Missing expanded player animation: {expected}'
@@ -106,7 +106,7 @@ jobs:
           assert '.directory-heading .tabs' in page
           for expected in ('.station.is-playing .station-art-wrap::before', '.station.is-playing .station-live-equaliser', '@keyframes station-border-glow', '@keyframes station-radio-wave', '@keyframes station-equaliser', '@media(prefers-reduced-motion:reduce)'):
               assert expected in page, f'Missing playing-station animation: {expected}'
-          for expected in ("make('div','station-art-wrap')", "make('span','station-live-equaliser')", "playbackState==='playing'?' is-playing'"):
+          for expected in ("make('div','station-art-wrap')", "make('span','station-live-equaliser')", "card.classList.toggle('is-playing',active&&animating)"):
               assert expected in js, f'Missing playback-aware station animation: {expected}'
           assert '.directory-heading::before{opacity:1;z-index:0}' in page
           assert '.directory-heading>*{position:relative;z-index:1}' in page
@@ -114,5 +114,8 @@ jobs:
           assert 'data-mode="diaspora"' in page
           for expected in ('DIASPORA_REGIONS', "'Caribbean':", "'United Kingdom & Europe':", "'North America':", "'Central & South America':", "'Middle East & Asia-Pacific':", "mode==='diaspora'", "document.createElement('optgroup')", "els.country.value='GB'"):
               assert expected in js, f'Missing diaspora discovery feature: {expected}'
+          for expected in ('function syncStationAnimations(animating)', "card.dataset.stationId=s.stationuuid", "card.classList.toggle('is-playing',active&&animating)", "classList.toggle('is-live',animating)"):
+              assert expected in js, f'Missing animation persistence fix: {expected}'
+          assert '.player-expanded.is-live .expanded-stage::after' in page
           print('Static checks passed')
           PY
