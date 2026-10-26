@@ -33,5 +33,8 @@ jobs:
               assert expected in map_js, f'Missing 3D map capability: {expected}'
           for expected in ('recentStations', 'rememberStation', 'next-station', 'radio:country'):
               assert expected in js, f'Missing enhanced player capability: {expected}'
+          for expected in ('bounds.getCenter', 'bounds.getSize', 'bounds.translate', 'function resize()', 'function hover(event)', 'hitTest(event)', 'tooltip.textContent=hit.userData.name'):
+              assert expected in map_js, f'Missing map fit or hover behaviour: {expected}'
+          assert '.map-tooltip' in page and '.map-tooltip[hidden]' in page
           print('Static checks passed')
           PY
