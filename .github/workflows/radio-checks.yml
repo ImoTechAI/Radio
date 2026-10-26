@@ -80,7 +80,7 @@ jobs:
           assert '.map-broadcast-label[hidden]' in page
           assert '.grid.has-playing .station:not(.is-playing) .play' in page
           assert '.grid.has-playing .station.is-playing .play' in page
-          for expected in ("els.stations.classList.toggle('has-playing',playbackState==='playing'&&!!current)", "' is-playing'", "play.setAttribute('aria-pressed',String(playing))", "syncStationAnimations(animating)"):
+          for expected in ("els.stations.classList.toggle('has-playing',animating)", "card.classList.toggle('is-playing',active&&animating)", "play.setAttribute('aria-pressed',String(playing))", "syncStationAnimations(animating)"):
               assert expected in js, f'Missing active station button emphasis: {expected}'
           expanded=Path('expanded-player.js').read_text()
           for expected in ('id="expanded-stage"', 'id="expanded-country"', 'id="expanded-equaliser"', 'expanded-player.js?v=1', '@media(prefers-reduced-motion:reduce)', 'radio.js?v=21'):
