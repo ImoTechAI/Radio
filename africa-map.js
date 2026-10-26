@@ -128,8 +128,14 @@ function addLiveEffects(country){
     // Separate short segments allow a bright head and a visibly fading tail.
     const trail=new THREE.Group();
     for(let i=0;i<24;i++){
-      const segment=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),new THREE.LineBasicMaterial({color:0xffe9a0,transparent:true,opacity:.15+.85*((i+1)/24)**1.4,depthTest:false}));
-      segment.renderOrder=8;trail.add(segment);
+      // Three nested ribbons: soft amber halo, bright gold beam, white-hot core.
+      // Mesh ribbons are used because WebGL lineWidth is usually fixed to 1px.
+      const layer=new THREE.Group();
+      for(const [width,color,opacity,order] of [[.18,0xffa72e,.08+.34*((i+1)/24)**1.4,8],[.09,0xffd25b,.15+.75*((i+1)/24)**1.4,9],[.035,0xfff6c6,.24+.76*((i+1)/24)**1.4,10]]){
+        const ribbon=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color,transparent:true,opacity,depthTest:false,depthWrite:false,side:THREE.DoubleSide}));
+        ribbon.userData.beamWidth=width;ribbon.renderOrder=order;layer.add(ribbon);
+      }
+      trail.add(layer);
     }
     trail.visible=false;country.group.add(trail);country.trail=trail;
 
@@ -224,10 +230,13 @@ function animate(){
           const segment=country.trail.children[i];
           const from=pointAt(head-(count-i)*path.total*.004);
           const to=pointAt(head-(count-i-1)*path.total*.004);
-          const positions=segment.geometry.attributes.position;
-          positions.setXYZ(0,from.x,from.y,from.z);
-          positions.setXYZ(1,to.x,to.y,to.z);
-          positions.needsUpdate=true;
+          const dx=to.x-from.x,dy=to.y-from.y;
+          const length=Math.hypot(dx,dy);
+          for(const ribbon of segment.children){
+            ribbon.position.set((from.x+to.x)/2,(from.y+to.y)/2,from.z+.02);
+            ribbon.rotation.z=Math.atan2(dy,dx);
+            ribbon.scale.set(length,ribbon.userData.beamWidth,1);
+          }
         }
       }
     }
