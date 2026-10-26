@@ -83,7 +83,7 @@ jobs:
           for expected in ("els.stations.classList.toggle('has-playing',playbackState==='playing'&&!!current)", "' is-playing'", "play.setAttribute('aria-pressed',String(playing))", "if(stations.length)render()"):
               assert expected in js, f'Missing active station button emphasis: {expected}'
           expanded=Path('expanded-player.js').read_text()
-          for expected in ('id="expanded-stage"', 'id="expanded-country"', 'id="expanded-equaliser"', 'expanded-player.js?v=1', '@media(prefers-reduced-motion:reduce)', 'radio.js?v=17'):
+          for expected in ('id="expanded-stage"', 'id="expanded-country"', 'id="expanded-equaliser"', 'expanded-player.js?v=1', '@media(prefers-reduced-motion:reduce)', 'radio.js?v=18'):
               assert expected in page, f'Missing expanded player animation UI: {expected}'
           for expected in ('THREE.WebGLRenderer', 'THREE.TorusGeometry', "addEventListener('radio:playback'", "addEventListener('radio:expanded'", 'function resetTilt()', 'function stop()', 'if(reduced.matches)resetTilt()'):
               assert expected in expanded, f'Missing expanded player animation: {expected}'
