@@ -111,5 +111,8 @@ jobs:
           assert '.directory-heading::before{opacity:1;z-index:0}' in page
           assert '.directory-heading>*{position:relative;z-index:1}' in page
           assert '.map-wrap::before' in page
+          assert 'data-mode="diaspora"' in page
+          for expected in ('DIASPORA_REGIONS', "'Caribbean':", "'United Kingdom & Europe':", "'North America':", "'Central & South America':", "'Middle East & Asia-Pacific':", "mode==='diaspora'", "document.createElement('optgroup')", "els.country.value='GB'"):
+              assert expected in js, f'Missing diaspora discovery feature: {expected}'
           print('Static checks passed')
           PY
