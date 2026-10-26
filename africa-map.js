@@ -17,6 +17,7 @@ const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
 const targets=[];
 const tooltip=document.createElement('div');tooltip.className='map-tooltip';tooltip.setAttribute('role','tooltip');tooltip.hidden=true;host.append(tooltip);
 const bounds=new THREE.Box3();
+let mapSize=new THREE.Vector3(17,17,0);
 let selected=null,drag=false,down=null,frame=0;
 function countryCode(name){return overrides[name]||byName.get(name.toLowerCase())}
 function points(ring){return ring.map(([lon,lat])=>new THREE.Vector2((lon-18)*.22,(lat-2)*.22))}
@@ -32,18 +33,16 @@ renderer.domElement.addEventListener('pointerleave',()=>{tooltip.hidden=true});
 function resize(){
   const w=host.clientWidth,h=host.clientHeight;
   if(!w||!h)return;
-  // Fixed geographic framing: Africa extends approximately 18°W–52°E, 35°S–38°N.
-  // Preserve aspect ratio by expanding the shorter camera axis, never by cropping.
-  const halfWidth=9.5,halfHeight=10;
   const aspect=w/h;
-  const visibleHalfHeight=Math.max(halfHeight,halfWidth/aspect);
-  const visibleHalfWidth=visibleHalfHeight*aspect;
-  camera.left=-visibleHalfWidth;camera.right=visibleHalfWidth;
-  camera.top=visibleHalfHeight;camera.bottom=-visibleHalfHeight;
+  // Fit both axes with padding. All polygons are centred around the geometry bounds.
+  const halfHeight=Math.max(mapSize.y*0.62,mapSize.x*0.62/aspect,1);
+  const halfWidth=halfHeight*aspect;
+  camera.left=-halfWidth;camera.right=halfWidth;
+  camera.top=halfHeight;camera.bottom=-halfHeight;
   camera.position.set(0,0,35);camera.lookAt(0,0,0);
   camera.updateProjectionMatrix();renderer.setSize(w,h,false);
 }
 new ResizeObserver(resize).observe(host);resize();
 function animate(){frame=requestAnimationFrame(animate);renderer.render(scene,camera)}animate();
-async function init(){try{const res=await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');if(!res.ok)throw Error('Map data unavailable');const geo=await res.json();for(const feature of geo.features){const raw=feature.properties?.name||'';const name=aliases[raw]||raw;if(!countries.has(name))continue;const code=countryCode(name);if(!code)continue;const geometry=feature.geometry;if(!geometry)continue;const polys=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];for(const polygon of polys){if(polygon[0])addPolygon(polygon[0],name,code)}}if(!targets.length)throw Error('No countries available');group.position.set(0,0,0);resize();status.textContent='Select a country on the 3D map to explore its stations';}catch(e){status.textContent='3D map data unavailable. Use the country selector below.';host.replaceChildren();cancelAnimationFrame(frame)}}
+async function init(){try{const res=await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');if(!res.ok)throw Error('Map data unavailable');const geo=await res.json();for(const feature of geo.features){const raw=feature.properties?.name||'';const name=aliases[raw]||raw;if(!countries.has(name))continue;const code=countryCode(name);if(!code)continue;const geometry=feature.geometry;if(!geometry)continue;const polys=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];for(const polygon of polys){if(polygon[0])addPolygon(polygon[0],name,code)}}if(!targets.length)throw Error('No countries available');const centre=bounds.getCenter(new THREE.Vector3());mapSize=bounds.getSize(new THREE.Vector3());group.position.set(-centre.x,-centre.y,0);resize();status.textContent='Select a country on the 3D map to explore its stations';}catch(e){status.textContent='3D map data unavailable. Use the country selector below.';host.replaceChildren();cancelAnimationFrame(frame)}}
 init();
