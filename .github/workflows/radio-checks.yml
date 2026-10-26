@@ -40,10 +40,17 @@ jobs:
           assert 'renderer.setSize(w,h);' in map_js, 'Canvas CSS size must track container dimensions'
           assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
           assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
-          assert 'radio.js?v=7' in page
+          assert 'radio.js?v=9' in page
           for expected in ('id="explorer-view"', 'id="directory-view"', 'id="back-to-map"', 'id="browse-all"', 'id="directory-title"'):
               assert expected in page, f'Missing two-view navigation: {expected}'
           for expected in ('function showView(code)', 'function route()', "location.hash='#/country/'", "location.hash='#/explore'", "window.addEventListener('hashchange',route)"):
               assert expected in js, f'Missing country navigation: {expected}'
+          for expected in ('id="genre-chips"', 'id="sort"', 'id="clear-search"', 'id="player-expanded"', 'id="expanded-toggle"', 'id="previous-station"', 'id="retry-stream"', 'id="live-indicator"', 'id="expand-player"'):
+              assert expected in page, f'Missing Phase 4 UI: {expected}'
+          for expected in ('function updateGenreChips()', 'function setPlaybackState(state)', 'function sortStations(items)', 'function closeExpanded()', "els.audio.addEventListener('waiting'", "els.audio.addEventListener('stalled'", "els.audio.addEventListener('error'", "function stepStation(delta)"):
+              assert expected in js, f'Missing Phase 4 logic: {expected}'
+          assert 'grid-template-columns:repeat(2,minmax(0,1fr))' in page, 'Missing tablet/mobile cards'
+          assert 'grid-template-columns:1fr' in page, 'Missing narrow-screen cards'
+          assert 'africa-map.js?v=8' in page, 'Phase 3 map must be unchanged'
           print('Static checks passed')
           PY
