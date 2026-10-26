@@ -41,7 +41,7 @@ jobs:
           assert 'renderer.setSize(w,h);' in map_js, 'Canvas CSS size must track container dimensions'
           assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
           assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
-          assert 'radio.js?v=17' in page
+          assert 'radio.js?v=18' in page
           for expected in ('id="explorer-view"', 'id="directory-view"', 'id="back-to-map"', 'id="browse-all"', 'id="directory-title"'):
               assert expected in page, f'Missing two-view navigation: {expected}'
           for expected in ('function showView(code)', 'function route()', "location.hash='#/country/'", "location.hash='#/explore'", "window.addEventListener('hashchange',route)"):
@@ -83,7 +83,7 @@ jobs:
           for expected in ("els.stations.classList.toggle('has-playing',playbackState==='playing'&&!!current)", "' is-playing'", "play.setAttribute('aria-pressed',String(playing))", "if(stations.length)render()"):
               assert expected in js, f'Missing active station button emphasis: {expected}'
           expanded=Path('expanded-player.js').read_text()
-          for expected in ('id="expanded-stage"', 'id="expanded-country"', 'id="expanded-equaliser"', 'expanded-player.js?v=1', '@media(prefers-reduced-motion:reduce)', 'radio.js?v=17'):
+          for expected in ('id="expanded-stage"', 'id="expanded-country"', 'id="expanded-equaliser"', 'expanded-player.js?v=1', '@media(prefers-reduced-motion:reduce)', 'radio.js?v=18'):
               assert expected in page, f'Missing expanded player animation UI: {expected}'
           for expected in ('THREE.WebGLRenderer', 'THREE.TorusGeometry', "addEventListener('radio:playback'", "addEventListener('radio:expanded'", 'function resetTilt()', 'function stop()', 'if(reduced.matches)resetTilt()'):
               assert expected in expanded, f'Missing expanded player animation: {expected}'
@@ -104,5 +104,9 @@ jobs:
           assert page.count('aria-label="Station category"') == 1
           assert page.index('id="directory-subtitle"') < page.index('aria-label="Station category"') < page.index('class="controls"')
           assert '.directory-heading .tabs' in page
+          for expected in ('.station.is-playing .station-art-wrap::before', '.station.is-playing .station-live-equaliser', '@keyframes station-border-glow', '@keyframes station-radio-wave', '@keyframes station-equaliser', '@media(prefers-reduced-motion:reduce)'):
+              assert expected in page, f'Missing playing-station animation: {expected}'
+          for expected in ("make('div','station-art-wrap')", "make('span','station-live-equaliser')", "playbackState==='playing'?' is-playing'"):
+              assert expected in js, f'Missing playback-aware station animation: {expected}'
           print('Static checks passed')
           PY
