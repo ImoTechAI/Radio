@@ -41,7 +41,7 @@ function setHover(code){
   hoveredCode=code;
   for(const [key,country] of countryGroups){
     const active=key===code;
-    country.target=active?.24:0;
+    country.target=active ? 0.24 : 0;
     for(const mesh of country.meshes)mesh.material.color.setHex(active?0x997039:0x253c4d);
     for(const border of country.borders){border.material.color.setHex(active?0xffd079:0xa67b39);border.material.opacity=active?1:.6}
   }
