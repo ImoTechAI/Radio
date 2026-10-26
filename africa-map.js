@@ -132,8 +132,7 @@ function addLiveEffects(country){
       segment.renderOrder=8;trail.add(segment);
     }
     trail.visible=false;country.group.add(trail);country.trail=trail;
-    const dot=new THREE.Mesh(new THREE.SphereGeometry(.038,12,8),new THREE.MeshBasicMaterial({color:0xfff1bd,depthTest:false}));
-    dot.renderOrder=9;dot.visible=false;country.group.add(dot);country.tracer=dot;
+
   }
   const box=new THREE.Box3();
   for(const mesh of country.meshes)box.expandByObject(mesh);
@@ -204,9 +203,8 @@ function animate(){
     const live=country.code===broadcastCode;
     const pulse=live&&!reducedMotion?.12*Math.sin(time*2.8):0;
     country.group.position.z=country.lift+pulse;
-    if(country.tracer){
+    if(country.trail){
       const visible=live&&!reducedMotion;
-      country.tracer.visible=visible;
       country.trail.visible=visible;
       country.borderGlow.visible=visible;
       if(visible){
@@ -221,7 +219,6 @@ function animate(){
           const span=path.lengths[end]-path.lengths[start];
           return path.points[start].clone().lerp(path.points[end],span?(d-path.lengths[start])/span:0);
         };
-        country.tracer.position.copy(pointAt(head));
         const count=country.trail.children.length;
         for(let i=0;i<count;i++){
           const segment=country.trail.children[i];
