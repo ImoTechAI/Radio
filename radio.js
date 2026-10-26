@@ -1,5 +1,15 @@
 'use strict';
 const AFRICA = ['DZ','AO','BJ','BW','BF','BI','CV','CM','CF','TD','KM','CD','CG','CI','DJ','EG','GQ','ER','SZ','ET','GA','GM','GH','GN','GW','KE','LS','LR','LY','MG','MW','ML','MR','MU','MA','MZ','NA','NE','NG','RW','ST','SN','SC','SL','SO','ZA','SS','SD','TZ','TG','TN','UG','ZM','ZW'];
+// Geographic discovery groups adapted from AfrOsint's wider country metadata.
+// These countries contain diaspora communities; listing a station does not certify its audience.
+const DIASPORA_REGIONS = {
+  'Caribbean': ['AG','BS','BB','CU','DM','DO','GD','HT','JM','KN','LC','VC','TT'],
+  'United Kingdom & Europe': ['GB','IE','FR','DE','NL','BE','PT','ES','IT','CH','SE','NO','DK'],
+  'North America': ['US','CA','MX'],
+  'Central & South America': ['BZ','CR','PA','CO','VE','GY','SR','BR','PE','EC','AR','UY'],
+  'Middle East & Asia-Pacific': ['AE','SA','QA','TR','IN','CN','JP','AU','NZ']
+};
+const DIASPORA_CODES = [...new Set(Object.values(DIASPORA_REGIONS).flat())];
 const API = ['https://de1.api.radio-browser.info','https://nl1.api.radio-browser.info','https://at1.api.radio-browser.info'];
 const $ = id => document.getElementById(id);
 const els = {search:$('search'),country:$('country'),genre:$('genre'),status:$('status'),stations:$('stations'),more:$('more'),audio:$('audio'),now:$('now'),playback:$('playback'),toggle:$('toggle'),volume:$('volume')};
@@ -70,7 +80,7 @@ function render(){
   if(!stations.length&&!busy)els.status.textContent=mode==='favourites'?'No favourites saved yet.':'No stations found. Try another search or filter.';
 }
 async function fetchStations(params){let error;for(const base of API){try{const ctrl=new AbortController();const timeout=setTimeout(()=>ctrl.abort(),9000);try{const response=await fetch(base+'/json/stations/search?'+params.toString(),{signal:ctrl.signal});if(!response.ok)throw Error('Station directory unavailable');const data=await response.json();if(!Array.isArray(data))throw Error('Invalid directory response');return data}finally{clearTimeout(timeout)}}catch(e){error=e}}throw error||Error('No station directory available')}
-async function load(append=false){const id=++requestId;if(mode==='favourites'){stations=sortStations(favourites().filter(validStation).filter(s=>matches(s)));els.more.hidden=true;els.status.textContent=stations.length+' saved station(s)';render();return}if(busy&&!append){}busy=true;if(!append){offset=0;stations=[];els.stations.replaceChildren()}els.more.hidden=true;els.status.textContent='Loading stations…';const order=$('sort').value==='name'?'name':$('sort').value==='recent'?'lastchangetime':'clickcount';const params=new URLSearchParams({hidebroken:'true',order,reverse:String(order!=='name'),limit:'30',offset:String(offset)});const q=els.search.value.trim();if(q)params.set('name',q);if(els.country.value)params.set('countrycode',els.country.value);if(els.genre.value)params.set('tag',els.genre.value);try{const data=await fetchStations(params);if(id!==requestId)return;const filtered=data.filter(validStation).filter(s=>mode!=='africa'||AFRICA.includes((s.countrycode||'').toUpperCase()));const seen=new Set(stations.map(s=>s.stationuuid));stations.push(...filtered.filter(s=>!seen.has(s.stationuuid)&&seen.add(s.stationuuid)));offset+=data.length;els.status.textContent=stations.length+' stations shown'+(mode==='africa'?' · African stations':'');els.more.hidden=data.length<30;render()}catch(e){if(id!==requestId)return;els.status.textContent='Unable to load the station directory. Check your connection and retry.';els.more.hidden=false;els.more.textContent='Retry'}finally{if(id===requestId)busy=false}}
+async function load(append=false){const id=++requestId;if(mode==='favourites'){stations=sortStations(favourites().filter(validStation).filter(s=>matches(s)));els.more.hidden=true;els.status.textContent=stations.length+' saved station(s)';render();return}if(busy&&!append){}busy=true;if(!append){offset=0;stations=[];els.stations.replaceChildren()}els.more.hidden=true;els.status.textContent='Loading stations…';const order=$('sort').value==='name'?'name':$('sort').value==='recent'?'lastchangetime':'clickcount';const params=new URLSearchParams({hidebroken:'true',order,reverse:String(order!=='name'),limit:'30',offset:String(offset)});const q=els.search.value.trim();if(q)params.set('name',q);if(els.country.value)params.set('countrycode',els.country.value);if(els.genre.value)params.set('tag',els.genre.value);try{const data=await fetchStations(params);if(id!==requestId)return;const filtered=data.filter(validStation).filter(s=>(mode!=='africa'||AFRICA.includes((s.countrycode||'').toUpperCase()))&&(mode!=='diaspora'||DIASPORA_CODES.includes((s.countrycode||'').toUpperCase())));const seen=new Set(stations.map(s=>s.stationuuid));stations.push(...filtered.filter(s=>!seen.has(s.stationuuid)&&seen.add(s.stationuuid)));offset+=data.length;els.status.textContent=stations.length+' stations shown'+(mode==='africa'?' · African stations':'');els.more.hidden=data.length<30;render()}catch(e){if(id!==requestId)return;els.status.textContent='Unable to load the station directory. Check your connection and retry.';els.more.hidden=false;els.more.textContent='Retry'}finally{if(id===requestId)busy=false}}
 function matches(s){const q=els.search.value.trim().toLowerCase();return(!q||s.name.toLowerCase().includes(q))&&(!els.country.value||s.countrycode===els.country.value)&&(!els.genre.value||(s.tags||'').toLowerCase().includes(els.genre.value))}
 function playStation(s){if(current?.stationuuid===s.stationuuid){if(els.audio.paused){setPlaybackState('connecting');els.audio.play().catch(playError)}else els.audio.pause();return}current=s;rememberStation(s);renderRecent();const art=$('player-art');if(art){art.src=/^https:\/\//i.test(s.favicon||'')?s.favicon:'./ARPLogo.png';art.alt=s.name+' artwork';art.onerror=()=>{art.onerror=null;art.src='./ARPLogo.png'}}els.audio.src=stationUrl(s);els.now.textContent=s.name;setPlaybackState('connecting');els.toggle.disabled=false;syncExpanded();els.audio.play().catch(playError);render()}
 function playError(){if(!current)return;setPlaybackState('unavailable');render()}
@@ -132,6 +142,33 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeExpanded();if(e
 $('sort').addEventListener('change',()=>{if(mode==='favourites')render();else load()});
 $('clear-search').addEventListener('click',()=>{els.search.value='';$('clear-search').hidden=true;clearTimeout(timer);load();els.search.focus()});
 
-document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.mode;document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));populateCountries();load()}));
-function populateCountries(){const old=els.country.value;els.country.replaceChildren(new Option('All countries',''));const codes=mode==='africa'?AFRICA:['NG','GH','KE','ZA','EG','MA','US','GB','FR','DE','BR','IN','AU','CA','JP',...AFRICA];const names=new Intl.DisplayNames(['en'],{type:'region'});for(const code of [...new Set(codes)].sort((a,b)=>names.of(a).localeCompare(names.of(b))))els.country.add(new Option(names.of(code),code));if([...els.country.options].some(o=>o.value===old))els.country.value=old}
+document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
+  mode=button.dataset.mode;
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+  populateCountries();
+  if(mode==='diaspora'){
+    els.country.value='GB';
+    $('directory-title').textContent='African Diaspora Radio';
+    $('directory-subtitle').textContent='Discover radio by host country. Stations are not necessarily diaspora-focused.';
+    document.title='African Diaspora Radio — TUNE.AFRICAN';
+  }
+  load();
+}));
+function populateCountries(){
+  const old=els.country.value;
+  els.country.replaceChildren(new Option(mode==='diaspora'?'All diaspora regions':'All countries',''));
+  const names=new Intl.DisplayNames(['en'],{type:'region'});
+  if(mode==='diaspora'){
+    for(const [region,codes] of Object.entries(DIASPORA_REGIONS)){
+      const group=document.createElement('optgroup');
+      group.label=region;
+      for(const code of codes)group.append(new Option(names.of(code),code));
+      els.country.add(group);
+    }
+  }else{
+    const codes=mode==='africa'?AFRICA:['NG','GH','KE','ZA','EG','MA','US','GB','FR','DE','BR','IN','AU','CA','JP',...AFRICA];
+    for(const code of [...new Set(codes)].sort((a,b)=>names.of(a).localeCompare(names.of(b))))els.country.add(new Option(names.of(code),code));
+  }
+  if([...els.country.options].some(o=>o.value===old))els.country.value=old;
+}
 els.search.addEventListener('input',()=>{$('clear-search').hidden=!els.search.value;clearTimeout(timer);timer=setTimeout(()=>load(),350)});els.country.addEventListener('change',()=>load());els.genre.addEventListener('change',()=>{updateGenreChips();load()});els.more.addEventListener('click',()=>load(els.more.textContent!=='Retry'));$('year').textContent=new Date().getFullYear();populateCountries();els.country.value='NG';updateGenreChips();renderRecent();route();
