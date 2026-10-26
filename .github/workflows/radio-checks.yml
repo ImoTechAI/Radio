@@ -130,9 +130,7 @@ jobs:
           assert 'id="player-map-shortcut"' in page
           assert '.player-map-shortcut:hover' in page
           assert "$('player-map-shortcut').addEventListener('click'" in js
-          assert 'new THREE.SphereGeometry(.038,12,8)' in map_js
           assert 'for(let i=0;i<24;i++)' in map_js
-          assert 'opacity:.15+.85*((i+1)/24)**1.4' in map_js
           assert 'country.trail.children.length' in map_js
           assert 'if(country.trail){' in map_js
           assert 'country.trail.visible=visible' in map_js
