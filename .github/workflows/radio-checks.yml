@@ -1,0 +1,28 @@
+name: Radio checks
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: node --check radio.js
+      - name: Static page checks
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          page=Path('index.html').read_text()
+          js=Path('radio.js').read_text()
+          for expected in ('<title>African Radio Player</title>', 'ARPLogo.png', 'favi.png', 'radio.js', 'id="stations"', 'id="audio"', 'id="search"', 'id="country"', 'id="toggle"'):
+              assert expected in page, f'Missing page element: {expected}'
+          for expected in ('localStorage', 'fetchStations', 'playStation', 'favourites()', 'aria-pressed'):
+              assert expected in js, f'Missing player capability: {expected}'
+          print('Static checks passed')
+          PY
