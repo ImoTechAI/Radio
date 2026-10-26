@@ -101,5 +101,8 @@ jobs:
           assert '#expanded-map{position:absolute;top:16px;left:50%' in page
           assert "$('expanded-map').addEventListener('click'" in js
           assert "location.hash='#/explore'" in js
+          assert page.count('aria-label="Station category"') == 1
+          assert page.index('id="directory-subtitle"') < page.index('aria-label="Station category"') < page.index('class="controls"')
+          assert '.directory-heading .tabs' in page
           print('Static checks passed')
           PY
