@@ -165,5 +165,7 @@ jobs:
           assert "background-image:url('./ARPLogo.png')" in page
           assert 'background-repeat:no-repeat;background-position:right' in page
           assert 'class="directory-logo-link" href="#/explore"' in page
+          assert 'background-size:clamp(120px,18vw,215px) auto' in page
+          assert "document.querySelector('.directory-logo-link')?.addEventListener('click'" in js
           print('Static checks passed')
           PY
