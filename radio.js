@@ -112,8 +112,8 @@ function updatePlayerViewToggle(showDirectory){
 function updateDirectoryHeading(){
   const country=els.country.value;
   const name=country?new Intl.DisplayNames(['en'],{type:'region'}).of(country):'';
-  const titles={africa:'African Radio Stations',diaspora:'African Diaspora Radio',world:'Worldwide Radio Stations',favourites:'My Favourite Stations'};
-  const subtitles={africa:'Explore live radio from across Africa.',diaspora:'Discover radio by host country. Stations are not necessarily diaspora-focused.',world:'Browse radio stations around the world.',favourites:'Your saved radio stations in one place.'};
+  const titles={africa:'African Radio Stations',diaspora:'African Diaspora Radio',favourites:'My Favourite Stations'};
+  const subtitles={africa:'Explore live radio from across Africa.',diaspora:'Discover radio by host country. Stations are not necessarily diaspora-focused.',favourites:'Your saved radio stations in one place.'};
   const title=mode==='favourites'?titles.favourites:country?name+' Radio Stations':titles[mode];
   const subtitle=mode==='favourites'?subtitles.favourites:country?'Explore live radio from '+name+'.':subtitles[mode];
   $('directory-title').textContent=title;
@@ -129,7 +129,7 @@ function showView(code){
   updatePlayerViewToggle(showDirectory);
   main.classList.toggle('explorer-main',!showDirectory);document.body.classList.toggle('explorer-active',!showDirectory);
   if(!showDirectory){document.title='TUNE.AFRICAN — Africa Explorer';return}
-  mode=isCountry||code==='africa'?'africa':'world';
+  mode='africa';
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   populateCountries();els.country.value=isCountry?code:'';
   els.search.value='';els.genre.value='';$('clear-search').hidden=true;updateGenreChips();
@@ -187,7 +187,7 @@ document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener
 }));
 function populateCountries(){
   const old=els.country.value;
-  els.country.replaceChildren(new Option(mode==='diaspora'?'All diaspora regions':'All countries',''));
+  els.country.replaceChildren(new Option(mode==='diaspora'?'All diaspora countries':'All countries',''));
   const names=new Intl.DisplayNames(['en'],{type:'region'});
   if(mode==='diaspora'){
     for(const [region,codes] of Object.entries(DIASPORA_REGIONS)){
@@ -197,7 +197,7 @@ function populateCountries(){
       els.country.add(group);
     }
   }else{
-    const codes=mode==='africa'?AFRICA:['NG','GH','KE','ZA','EG','MA','US','GB','FR','DE','BR','IN','AU','CA','JP',...AFRICA];
+    const codes=AFRICA;
     for(const code of [...new Set(codes)].sort((a,b)=>names.of(a).localeCompare(names.of(b))))els.country.add(new Option(names.of(code),code));
   }
   if([...els.country.options].some(o=>o.value===old))els.country.value=old;
