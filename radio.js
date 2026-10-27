@@ -108,6 +108,9 @@ function showView(code){
   const showDirectory=isCountry||code==='all';
   explorer.hidden=showDirectory;directory.hidden=!showDirectory;
   main.classList.toggle('explorer-main',!showDirectory);document.body.classList.toggle('explorer-active',!showDirectory);
+  const headerFlag=$('header-country-flag');
+  headerFlag.hidden=!isCountry;
+  if(isCountry){headerFlag.src='https://flagcdn.com/w80/'+code.toLowerCase()+'.png';headerFlag.alt=new Intl.DisplayNames(['en'],{type:'region'}).of(code)+' flag';headerFlag.onerror=()=>{headerFlag.hidden=true}}
   if(!showDirectory){document.title='TUNE.AFRICAN — Africa Explorer';return}
   mode=isCountry?'africa':'world';
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
