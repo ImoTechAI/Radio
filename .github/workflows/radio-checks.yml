@@ -169,6 +169,7 @@ jobs:
           assert "getElementById('back-to-map')" not in js
           assert page.index('id="recent-section"') > page.index('id="genre-chips"')
           assert '0 0 16px 4px rgba(232,177,74,.25)' in page
-          assert 'background-position:right clamp(8px,7vw,95px) top 18px' in page
+          assert 'min-height:260px;background-image:url' in page
+          assert 'background-position:right clamp(8px,7vw,95px) center' in page
           print('Static checks passed')
           PY
