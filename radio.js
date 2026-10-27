@@ -18,8 +18,11 @@ const recentKey='african-radio-recent-v1';
 function recentStations(){try{const data=JSON.parse(localStorage.getItem(recentKey)||'[]');return Array.isArray(data)?data.filter(validStation).slice(0,12):[]}catch{return []}}
 function clearRecentStations(){try{localStorage.removeItem(recentKey)}catch{els.status.textContent='Unable to clear recently played stations in this browser.';return}renderRecent()}
 function rememberStation(s){try{localStorage.setItem(recentKey,JSON.stringify([s,...recentStations().filter(x=>x.stationuuid!==s.stationuuid)].slice(0,12)))}catch{}}
-function renderRecent(){const box=$('recent-stations');if(!box)return;box.replaceChildren();const items=recentStations();$('recent-section').hidden=!items.length;for(const s of items){const b=make('button','btn',s.name);b.type='button';b.addEventListener('click',()=>playStation(s));box.append(b)}}
+let recentExpanded=false;
+function collapseRecent(){if(!recentExpanded)return;recentExpanded=false;renderRecent()}
+function renderRecent(){const box=$('recent-stations');if(!box)return;box.replaceChildren();const items=recentStations();$('recent-section').hidden=!items.length;$('recent-section').classList.toggle('is-expanded',recentExpanded);$('toggle-recent').hidden=items.length<=3;$('toggle-recent').textContent=recentExpanded?'Show less':'Show all';$('toggle-recent').setAttribute('aria-expanded',String(recentExpanded));for(const s of items){const b=make('button','btn',s.name);b.type='button';b.addEventListener('click',()=>playStation(s));box.append(b)}}
 $('clear-recent').addEventListener('click',clearRecentStations);
+$('toggle-recent').addEventListener('click',()=>{recentExpanded=!recentExpanded;renderRecent()});
 let mode='africa', stations=[], offset=0, busy=false, current=null, requestId=0, timer, playbackState='idle', lastFocused=null;
 const GENRES=[['','All'],['afrobeats','Afrobeats'],['gospel','Gospel'],['news','News'],['talk','Talk'],['jazz','Jazz'],['reggae','Reggae'],['music','Music']];
 function updateGenreChips(){const box=$('genre-chips');box.replaceChildren();for(const [tag,label] of GENRES){const button=make('button','genre-chip',label);button.type='button';button.setAttribute('aria-pressed',String(els.genre.value===tag));button.addEventListener('click',()=>{els.genre.value=tag;updateGenreChips();load()});box.append(button)}}
@@ -218,4 +221,4 @@ function populateCountries(){
   }
   if([...els.country.options].some(o=>o.value===old))els.country.value=old;
 }
-els.search.addEventListener('input',()=>{$('clear-search').hidden=!els.search.value;clearTimeout(timer);timer=setTimeout(()=>load(),350)});els.country.addEventListener('change',()=>{updateDirectoryHeading();load()});els.genre.addEventListener('change',()=>{updateGenreChips();load()});els.more.addEventListener('click',()=>load(els.more.textContent!=='Retry'));$('year').textContent=new Date().getFullYear();populateCountries();els.country.value='NG';updateGenreChips();renderRecent();route();
+els.search.addEventListener('input',()=>{collapseRecent();$('clear-search').hidden=!els.search.value;clearTimeout(timer);timer=setTimeout(()=>load(),350)});els.country.addEventListener('change',()=>{collapseRecent();updateDirectoryHeading();load()});els.genre.addEventListener('change',()=>{updateGenreChips();load()});els.more.addEventListener('click',()=>load(els.more.textContent!=='Retry'));$('year').textContent=new Date().getFullYear();populateCountries();els.country.value='NG';updateGenreChips();renderRecent();route();
