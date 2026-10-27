@@ -173,5 +173,8 @@ jobs:
           assert '.directory-heading{position:relative;isolation:isolate;min-height:270px' in page
           assert 'height:260px;display:block;z-index:2;cursor:pointer' in page
           assert 'class="directory-logo-link" href="#/explore"' in page
+          assert "background:url('./ARPLogo.png') center/contain no-repeat;opacity:1" in page
+          assert 'class="directory-logo-link" href="#/explore"' in page
+          assert 'min-height:270px' not in page
           print('Static checks passed')
           PY
