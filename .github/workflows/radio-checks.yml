@@ -160,12 +160,8 @@ jobs:
           assert 'Click to explore' not in map_js
           assert 'map-country-flag' in page
           assert page.index('data-mode="diaspora"') < page.index('data-mode="world"')
-          assert 'class="directory-logo-link" href="#/explore"' in page
           assert '.directory-heading::before{content:none}' in page
-          assert 'class="directory-logo-link" href="#/explore"' in page
-          assert "document.querySelector('.directory-logo-link')?.addEventListener('click'" in js
-          assert 'class="directory-logo-link" href="#/explore"' in page
-          assert '<img src="./ARPLogo.png" alt="" aria-hidden="true"></a>' in page
-          assert '.directory-logo-link{z-index:10;pointer-events:auto}' in page
+          assert "background-image:url('./ARPLogo.png')" in page
+          assert 'class="directory-logo-link"' not in page
           print('Static checks passed')
           PY
