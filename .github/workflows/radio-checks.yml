@@ -170,5 +170,8 @@ jobs:
           assert 'class="directory-logo-link" href="#/explore"' in page
           assert '<img src="./ARPLogo.png" alt="TUNE.AFRICAN — return to Africa map">' in page
           assert 'class="brand" href="#/explore"' in page
+          assert '.directory-heading{position:relative;isolation:isolate;min-height:270px' in page
+          assert 'height:260px;display:block;z-index:2;cursor:pointer' in page
+          assert 'class="directory-logo-link" href="#/explore"' in page
           print('Static checks passed')
           PY
