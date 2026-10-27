@@ -167,7 +167,7 @@ document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
   populateCountries();
   if(mode==='diaspora'){
-    els.country.value='GB';
+    els.country.value='JM';
     $('directory-title').textContent='African Diaspora Radio';
     $('directory-subtitle').textContent='Discover radio by host country. Stations are not necessarily diaspora-focused.';
     document.title='African Diaspora Radio — TUNE.AFRICAN';
