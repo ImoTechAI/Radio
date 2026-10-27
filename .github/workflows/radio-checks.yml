@@ -181,7 +181,7 @@ jobs:
           assert "code==='africa'" in js
           assert 'function updateDirectoryHeading()' in js
           assert 'My Favourite Stations' in js
-          assert "els.country.addEventListener('change',()=>{updateDirectoryHeading();load()})" in js
+          assert "els.country.addEventListener('change',()=>{collapseRecent();updateDirectoryHeading();load()})" in js
           assert 'data-mode="world"' not in page
           assert 'data-mode="africa"' in page and 'data-mode="diaspora"' in page and 'data-mode="favourites"' in page
           print('Static checks passed')
