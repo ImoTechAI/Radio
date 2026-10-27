@@ -20,9 +20,6 @@ const pan=new THREE.Vector2();
 const stationCounts=new Map();
 let countsLoading=null;
 let hoveredCodeForTooltip=null;
-function flagFor(code){
-  return /^[A-Z]{2}$/.test(code||'')?String.fromCodePoint(...code.split('').map(ch=>127397+ch.charCodeAt(0))):'';
-}
 function tooltipLabel(name,code){
   const count=stationCounts.get(code);
   return name+' · '+(count===undefined?'Stations: loading…':count.toLocaleString()+' station'+(count===1?'':'s'));
