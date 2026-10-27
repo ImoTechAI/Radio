@@ -105,8 +105,7 @@ $('next-station')?.addEventListener('click',()=>{stepStation(1)});
 let lastDirectoryHash='#/all';
 function updatePlayerViewToggle(showDirectory){
   const button=$('player-map-shortcut');
-  button.querySelector('.player-africa-icon').hidden=!showDirectory;
-  button.querySelector('.player-stations-icon').hidden=showDirectory;
+  button.classList.toggle('is-map-view',!showDirectory);
   const label=showDirectory?'Show Africa Explorer map':'Show radio stations';
   button.setAttribute('aria-label',label);button.title=label;
 }

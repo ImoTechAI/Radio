@@ -175,5 +175,7 @@ jobs:
           assert 'class="player-africa-icon"' in page
           assert 'function updatePlayerViewToggle(showDirectory)' in js
           assert "onDirectory?'#/explore':lastDirectoryHash" in js
+          assert ".player-map-shortcut.is-map-view .player-stations-icon{display:block}" in page
+          assert "button.classList.toggle('is-map-view',!showDirectory)" in js
           print('Static checks passed')
           PY
