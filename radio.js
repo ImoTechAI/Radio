@@ -102,11 +102,21 @@ function matches(s){const q=els.search.value.trim().toLowerCase();return(!q||s.n
 function playStation(s){if(current?.stationuuid===s.stationuuid){if(els.audio.paused){setPlaybackState('connecting');els.audio.play().catch(playError)}else els.audio.pause();return}current=s;rememberStation(s);renderRecent();const art=$('player-art');if(art){art.src=/^https:\/\//i.test(s.favicon||'')?s.favicon:'./ARPLogo.png';art.alt=s.name+' artwork';art.onerror=()=>{art.onerror=null;art.src='./ARPLogo.png'}}els.audio.src=stationUrl(s);els.now.textContent=s.name;setPlaybackState('connecting');els.toggle.disabled=false;syncExpanded();els.audio.play().catch(playError);render()}
 function playError(){if(!current)return;setPlaybackState('unavailable');render()}
 $('next-station')?.addEventListener('click',()=>{stepStation(1)});
+let lastDirectoryHash='#/all';
+function updatePlayerViewToggle(showDirectory){
+  const button=$('player-map-shortcut');
+  button.querySelector('.player-africa-icon').hidden=!showDirectory;
+  button.querySelector('.player-stations-icon').hidden=showDirectory;
+  const label=showDirectory?'Show Africa Explorer map':'Show radio stations';
+  button.setAttribute('aria-label',label);button.title=label;
+}
 function showView(code){
   const explorer=$('explorer-view'),directory=$('directory-view'),main=document.querySelector('main');
   const isCountry=!!code&&AFRICA.includes(code);
   const showDirectory=isCountry||code==='all';
   explorer.hidden=showDirectory;directory.hidden=!showDirectory;
+  if(showDirectory)lastDirectoryHash=location.hash.startsWith('#/country/')||location.hash==='#/all'?location.hash:lastDirectoryHash;
+  updatePlayerViewToggle(showDirectory);
   main.classList.toggle('explorer-main',!showDirectory);document.body.classList.toggle('explorer-active',!showDirectory);
   if(!showDirectory){document.title='TUNE.AFRICAN — Africa Explorer';return}
   mode=isCountry?'africa':'world';
@@ -124,7 +134,7 @@ new ResizeObserver(fitExplorerPlayer).observe(document.querySelector('.player'))
 function route(){const match=location.hash.match(/^#\/(country\/([A-Z]{2})|all)$/);showView(match?(match[2]||'all'):null)}
 window.addEventListener('hashchange',route);
 window.addEventListener('radio:country',event=>{const code=event.detail?.code;if(!AFRICA.includes(code))return;location.hash='#/country/'+code;if(location.hash==='#/country/'+code)route()});
-$('player-map-shortcut').addEventListener('click',()=>{location.hash='#/explore';route();window.scrollTo({top:0,behavior:'smooth'})});
+$('player-map-shortcut').addEventListener('click',()=>{const onDirectory=!$('directory-view').hidden;location.hash=onDirectory?'#/explore':lastDirectoryHash;route();window.scrollTo({top:0,behavior:'smooth'})});
 
 els.audio.addEventListener('playing',()=>setPlaybackState('playing'));
 els.audio.addEventListener('pause',()=>{if(playbackState!=='unavailable')setPlaybackState('paused')});
