@@ -41,7 +41,7 @@ jobs:
           assert 'renderer.setSize(w,h);' in map_js, 'Canvas CSS size must track container dimensions'
           assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
           assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
-          assert 'radio.js?v=22' in page
+          assert 'radio.js?v=23' in page
           for expected in ('id="explorer-view"', 'id="directory-view"', 'id="back-to-map"', 'class="explorer-account-actions"', 'id="directory-title"'):
               assert expected in page, f'Missing two-view navigation: {expected}'
           for expected in ('function showView(code)', 'function route()', "location.hash='#/country/'", "location.hash='#/explore'", "window.addEventListener('hashchange',route)"):
@@ -83,7 +83,7 @@ jobs:
           for expected in ("els.stations.classList.toggle('has-playing',animating)", "card.classList.toggle('is-playing',active&&animating)", "play.setAttribute('aria-pressed',String(playing))", "syncStationAnimations(animating)"):
               assert expected in js, f'Missing active station button emphasis: {expected}'
           expanded=Path('expanded-player.js').read_text()
-          for expected in ('id="expanded-stage"', 'id="expanded-country"', 'id="expanded-equaliser"', 'expanded-player.js?v=1', '@media(prefers-reduced-motion:reduce)', 'radio.js?v=22'):
+          for expected in ('id="expanded-stage"', 'id="expanded-country"', 'id="expanded-equaliser"', 'expanded-player.js?v=1', '@media(prefers-reduced-motion:reduce)', 'radio.js?v=23'):
               assert expected in page, f'Missing expanded player animation UI: {expected}'
           for expected in ('THREE.WebGLRenderer', 'THREE.TorusGeometry', "addEventListener('radio:playback'", "addEventListener('radio:expanded'", 'function resetTilt()', 'function stop()', 'if(reduced.matches)resetTilt()'):
               assert expected in expanded, f'Missing expanded player animation: {expected}'
@@ -162,5 +162,8 @@ jobs:
           assert page.index('data-mode="diaspora"') < page.index('data-mode="world"')
           assert 'class="directory-logo-link" href="#/explore"' in page
           assert '.directory-heading::before{content:none}' in page
+          assert 'id="header-country-flag"' in page
+          assert 'headerFlag.hidden=!isCountry' in radio_js
+          assert 'flagcdn.com/w80/' in radio_js
           print('Static checks passed')
           PY
