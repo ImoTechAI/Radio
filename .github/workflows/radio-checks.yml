@@ -34,7 +34,7 @@ jobs:
               assert expected in map_js, f'Missing 3D map capability: {expected}'
           for expected in ('recentStations', 'rememberStation', 'next-station', 'radio:country'):
               assert expected in js, f'Missing enhanced player capability: {expected}'
-          for expected in ('THREE.OrthographicCamera', 'camera.left=-halfWidth', 'camera.top=halfHeight', 'function resize()', 'function hover(event)', 'hitTest(event)', 'tooltip.textContent=(hit.userData.code?', 'bounds.getCenter', 'mapCentre.set(-centre.x,-centre.y)'):
+          for expected in ('THREE.OrthographicCamera', 'camera.left=-halfWidth', 'camera.top=halfHeight', 'function resize()', 'function hover(event)', 'hitTest(event)', 'tooltip.textContent=tooltipLabel(hit.userData.name,hit.userData.code)', 'bounds.getCenter', 'mapCentre.set(-centre.x,-centre.y)'):
               assert expected in map_js, f'Missing map fit or hover behaviour: {expected}'
           assert '.map-tooltip' in page and '.map-tooltip[hidden]' in page
           assert 'africa-map.js?v=22' in page
