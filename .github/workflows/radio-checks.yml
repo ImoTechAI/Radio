@@ -118,7 +118,7 @@ jobs:
               assert expected in js, f'Missing animation persistence fix: {expected}'
           assert '.player-expanded.is-live .expanded-stage::after' in page
           assert 'class="explorer-account-actions"' in page
-          assert 'Registration coming soon' in page and 'Sign in coming soon' in page
+          assert 'Registration coming soon' in page and 'href="./admin.html"' in page
           assert "'browse-all'" not in js
           assert "background-position:center 14%;background-size:auto clamp(760px,110vh,1250px)" in page
           assert "@media(max-width:800px){.map-wrap::before" in page
