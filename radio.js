@@ -109,6 +109,17 @@ function updatePlayerViewToggle(showDirectory){
   const label=showDirectory?'Show Africa Explorer map':'Show radio stations';
   button.setAttribute('aria-label',label);button.title=label;
 }
+function updateDirectoryHeading(){
+  const country=els.country.value;
+  const name=country?new Intl.DisplayNames(['en'],{type:'region'}).of(country):'';
+  const titles={africa:'African Radio Stations',diaspora:'African Diaspora Radio',world:'Worldwide Radio Stations',favourites:'My Favourite Stations'};
+  const subtitles={africa:'Explore live radio from across Africa.',diaspora:'Discover radio by host country. Stations are not necessarily diaspora-focused.',world:'Browse radio stations around the world.',favourites:'Your saved radio stations in one place.'};
+  const title=mode==='favourites'?titles.favourites:country?name+' Radio Stations':titles[mode];
+  const subtitle=mode==='favourites'?subtitles.favourites:country?'Explore live radio from '+name+'.':subtitles[mode];
+  $('directory-title').textContent=title;
+  $('directory-subtitle').textContent=subtitle;
+  document.title=title+' — TUNE.AFRICAN';
+}
 function showView(code){
   const explorer=$('explorer-view'),directory=$('directory-view'),main=document.querySelector('main');
   const isCountry=!!code&&AFRICA.includes(code);
@@ -122,10 +133,7 @@ function showView(code){
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   populateCountries();els.country.value=isCountry?code:'';
   els.search.value='';els.genre.value='';$('clear-search').hidden=true;updateGenreChips();
-  const name=isCountry?new Intl.DisplayNames(['en'],{type:'region'}).of(code):code==='africa'?'Africa':'Worldwide';
-  $('directory-title').textContent=name+' Radio Stations';
-  $('directory-subtitle').textContent=isCountry?'Explore live radio from '+name+'.':code==='africa'?'Explore live radio from across Africa.':'Browse radio stations around the world.';
-  document.title=name+' Radio — TUNE.AFRICAN';
+  updateDirectoryHeading();
   load();
 }
 function fitExplorerPlayer(){document.documentElement.style.setProperty('--explorer-player-height',Math.ceil(document.querySelector('.player').getBoundingClientRect().height)+'px')}
@@ -172,12 +180,9 @@ document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener
   mode=button.dataset.mode;
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
   populateCountries();
-  if(mode==='diaspora'){
-    els.country.value='JM';
-    $('directory-title').textContent='African Diaspora Radio';
-    $('directory-subtitle').textContent='Discover radio by host country. Stations are not necessarily diaspora-focused.';
-    document.title='African Diaspora Radio — TUNE.AFRICAN';
-  }
+  if(mode==='diaspora')els.country.value='JM';
+  if(mode==='favourites')els.country.value='';
+  updateDirectoryHeading();
   load();
 }));
 function populateCountries(){
@@ -197,4 +202,4 @@ function populateCountries(){
   }
   if([...els.country.options].some(o=>o.value===old))els.country.value=old;
 }
-els.search.addEventListener('input',()=>{$('clear-search').hidden=!els.search.value;clearTimeout(timer);timer=setTimeout(()=>load(),350)});els.country.addEventListener('change',()=>load());els.genre.addEventListener('change',()=>{updateGenreChips();load()});els.more.addEventListener('click',()=>load(els.more.textContent!=='Retry'));$('year').textContent=new Date().getFullYear();populateCountries();els.country.value='NG';updateGenreChips();renderRecent();route();
+els.search.addEventListener('input',()=>{$('clear-search').hidden=!els.search.value;clearTimeout(timer);timer=setTimeout(()=>load(),350)});els.country.addEventListener('change',()=>{updateDirectoryHeading();load()});els.genre.addEventListener('change',()=>{updateGenreChips();load()});els.more.addEventListener('click',()=>load(els.more.textContent!=='Retry'));$('year').textContent=new Date().getFullYear();populateCountries();els.country.value='NG';updateGenreChips();renderRecent();route();

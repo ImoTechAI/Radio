@@ -180,5 +180,9 @@ jobs:
           assert "els.country.value='JM';" in js
           assert "let lastDirectoryHash='#/africa';" in js
           assert "code==='africa'" in js
+          assert 'function updateDirectoryHeading()' in js
+          assert 'My Favourite Stations' in js
+          assert 'Worldwide Radio Stations' in js
+          assert "els.country.addEventListener('change',()=>{updateDirectoryHeading();load()})" in js
           print('Static checks passed')
           PY
