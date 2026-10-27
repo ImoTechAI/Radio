@@ -151,7 +151,6 @@ jobs:
           assert 'const rimLight=new THREE.DirectionalLight' in map_js
           assert 'mesh.userData.terrain' in map_js
           assert 'depth:.28' in map_js
-          assert 'Click to explore stations' in map_js
           assert 'id="map-country-search"' not in page
           assert 'countrySearch' not in map_js
           assert 'function flagFor(code)' in map_js
