@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "description": "TUNE.AFRICAN editorial station registry. Only approved entries with official HTTPS streams should be enabled in the player.",
+  "stations": [
+    {
+      "id": "legacy-901-manchester",
+      "name": "Legacy 90.1 FM",
+      "countryCode": "GB",
+      "country": "United Kingdom",
+      "city": "Manchester",
+      "region": "Diaspora",
+      "genres": [
+        "African",
+        "Caribbean",
+        "Reggae",
+        "Soul",
+        "Afrobeats",
+        "Gospel",
+        "Community"
+      ],
+      "homepage": "https://legacy901.com",
+      "streamUrl": "https://live.sarc.co.uk/listen/legacy/radio.mp3",
+      "source": "https://legacy901.com/radiochannel/legacy-90-1fm",
+      "approvalStatus": "approved",
+      "streamStatus": "unverified-live",
+      "priority": 100
+    },
+    {
+      "id": "newstyle-birmingham",
+      "name": "Newstyle Radio 98.7 FM",
+      "countryCode": "GB",
+      "country": "United Kingdom",
+      "city": "Birmingham",
+      "region": "Diaspora",
+      "genres": [
+        "African",
+        "Caribbean",
+        "Reggae",
+        "Soul",
+        "Community"
+      ],
+      "homepage": "https://newstyleradio.co.uk/",
+      "streamUrl": null,
+      "source": "https://newstyleradio.co.uk/",
+      "approvalStatus": "pending-stream-verification",
+      "streamStatus": "unknown",
+      "priority": 90
+    },
+    {
+      "id": "cosoro-uk",
+      "name": "Cosoro Radio Network",
+      "countryCode": "GB",
+      "country": "United Kingdom",
+      "city": "Multiple UK cities",
+      "region": "Diaspora",
+      "genres": [
+        "Afrobeats",
+        "Pidgin",
+        "African"
+      ],
+      "homepage": "https://cosororadio.co.uk/",
+      "streamUrl": null,
+      "source": "https://cosororadio.co.uk/radio-stations/",
+      "approvalStatus": "pending-stream-verification",
+      "streamStatus": "unknown",
+      "priority": 90
+    }
+  ]
+}
