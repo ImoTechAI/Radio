@@ -163,7 +163,7 @@ jobs:
           assert 'class="directory-logo-link" href="#/explore"' in page
           assert '.directory-heading::before{content:none}' in page
           assert 'id="header-country-flag"' in page
-          assert 'headerFlag.hidden=!isCountry' in radio
-          assert 'flagcdn.com/w80/' in radio
+          assert 'headerFlag.hidden=!isCountry' in js
+          assert 'flagcdn.com/w80/' in js
           print('Static checks passed')
           PY
