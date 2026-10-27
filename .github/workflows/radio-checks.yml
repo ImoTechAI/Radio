@@ -163,5 +163,7 @@ jobs:
           assert '.directory-heading::before{content:none}' in page
           assert "background-image:url('./ARPLogo.png')" in page
           assert 'class="directory-logo-link"' not in page
+          assert "const africaAll=mode==='africa'&&!els.country.value" in js
+          assert "p.set('countrycode',code)" in js
           print('Static checks passed')
           PY
