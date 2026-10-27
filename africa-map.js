@@ -25,7 +25,7 @@ function flagFor(code){
 }
 function tooltipLabel(name,code){
   const count=stationCounts.get(code);
-  return flagFor(code)+'  '+name+' · '+(count===undefined?'Stations: loading…':count.toLocaleString()+' station'+(count===1?'':'s'))+' · Click to explore';
+  return name+' · '+(count===undefined?'Stations: loading…':count.toLocaleString()+' station'+(count===1?'':'s'));
 }
 async function loadStationCounts(){
   if(countsLoading)return countsLoading;
