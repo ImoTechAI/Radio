@@ -159,5 +159,8 @@ jobs:
           assert 'showCountryTooltip(hit.userData.name,hit.userData.code)' in map_js
           assert 'Click to explore' not in map_js
           assert 'map-country-flag' in page
+          assert page.index('data-mode="diaspora"') < page.index('data-mode="world"')
+          assert 'class="directory-logo-link" href="#/explore"' in page
+          assert '.directory-heading::before{content:none}' in page
           print('Static checks passed')
           PY
