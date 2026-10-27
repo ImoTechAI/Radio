@@ -102,7 +102,7 @@ function matches(s){const q=els.search.value.trim().toLowerCase();return(!q||s.n
 function playStation(s){if(current?.stationuuid===s.stationuuid){if(els.audio.paused){setPlaybackState('connecting');els.audio.play().catch(playError)}else els.audio.pause();return}current=s;rememberStation(s);renderRecent();const art=$('player-art');if(art){art.src=/^https:\/\//i.test(s.favicon||'')?s.favicon:'./ARPLogo.png';art.alt=s.name+' artwork';art.onerror=()=>{art.onerror=null;art.src='./ARPLogo.png'}}els.audio.src=stationUrl(s);els.now.textContent=s.name;setPlaybackState('connecting');els.toggle.disabled=false;syncExpanded();els.audio.play().catch(playError);render()}
 function playError(){if(!current)return;setPlaybackState('unavailable');render()}
 $('next-station')?.addEventListener('click',()=>{stepStation(1)});
-let lastDirectoryHash='#/all';
+let lastDirectoryHash='#/africa';
 function updatePlayerViewToggle(showDirectory){
   const button=$('player-map-shortcut');
   button.classList.toggle('is-map-view',!showDirectory);
@@ -112,25 +112,25 @@ function updatePlayerViewToggle(showDirectory){
 function showView(code){
   const explorer=$('explorer-view'),directory=$('directory-view'),main=document.querySelector('main');
   const isCountry=!!code&&AFRICA.includes(code);
-  const showDirectory=isCountry||code==='all';
+  const showDirectory=isCountry||code==='all'||code==='africa';
   explorer.hidden=showDirectory;directory.hidden=!showDirectory;
-  if(showDirectory)lastDirectoryHash=location.hash.startsWith('#/country/')||location.hash==='#/all'?location.hash:lastDirectoryHash;
+  if(showDirectory)lastDirectoryHash=location.hash.startsWith('#/country/')||location.hash==='#/all'||location.hash==='#/africa'?location.hash:lastDirectoryHash;
   updatePlayerViewToggle(showDirectory);
   main.classList.toggle('explorer-main',!showDirectory);document.body.classList.toggle('explorer-active',!showDirectory);
   if(!showDirectory){document.title='TUNE.AFRICAN — Africa Explorer';return}
-  mode=isCountry?'africa':'world';
+  mode=isCountry||code==='africa'?'africa':'world';
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   populateCountries();els.country.value=isCountry?code:'';
   els.search.value='';els.genre.value='';$('clear-search').hidden=true;updateGenreChips();
-  const name=isCountry?new Intl.DisplayNames(['en'],{type:'region'}).of(code):'Worldwide';
+  const name=isCountry?new Intl.DisplayNames(['en'],{type:'region'}).of(code):code==='africa'?'Africa':'Worldwide';
   $('directory-title').textContent=name+' Radio Stations';
-  $('directory-subtitle').textContent=isCountry?'Explore live radio from '+name+'.':'Browse radio stations around the world.';
+  $('directory-subtitle').textContent=isCountry?'Explore live radio from '+name+'.':code==='africa'?'Explore live radio from across Africa.':'Browse radio stations around the world.';
   document.title=name+' Radio — TUNE.AFRICAN';
   load();
 }
 function fitExplorerPlayer(){document.documentElement.style.setProperty('--explorer-player-height',Math.ceil(document.querySelector('.player').getBoundingClientRect().height)+'px')}
 new ResizeObserver(fitExplorerPlayer).observe(document.querySelector('.player'));fitExplorerPlayer();
-function route(){const match=location.hash.match(/^#\/(country\/([A-Z]{2})|all)$/);showView(match?(match[2]||'all'):null)}
+function route(){const match=location.hash.match(/^#\/(country\/([A-Z]{2})|all|africa)$/);showView(match?(match[2]||match[1]):null)}
 window.addEventListener('hashchange',route);
 window.addEventListener('radio:country',event=>{const code=event.detail?.code;if(!AFRICA.includes(code))return;location.hash='#/country/'+code;if(location.hash==='#/country/'+code)route()});
 $('player-map-shortcut').addEventListener('click',()=>{const onDirectory=!$('directory-view').hidden;location.hash=onDirectory?'#/explore':lastDirectoryHash;route();window.scrollTo({top:0,behavior:'smooth'})});
@@ -173,7 +173,7 @@ document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
   populateCountries();
   if(mode==='diaspora'){
-    els.country.value='GB';
+    els.country.value='JM';
     $('directory-title').textContent='African Diaspora Radio';
     $('directory-subtitle').textContent='Discover radio by host country. Stations are not necessarily diaspora-focused.';
     document.title='African Diaspora Radio — TUNE.AFRICAN';

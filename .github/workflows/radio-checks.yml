@@ -112,7 +112,7 @@ jobs:
           assert '.directory-heading>*{position:relative;z-index:1}' in page
           assert '.map-wrap::before' in page
           assert 'data-mode="diaspora"' in page
-          for expected in ('DIASPORA_REGIONS', "'Caribbean':", "'United Kingdom & Europe':", "'North America':", "'Central & South America':", "'Middle East & Asia-Pacific':", "mode==='diaspora'", "document.createElement('optgroup')", "els.country.value='GB'"):
+          for expected in ('DIASPORA_REGIONS', "'Caribbean':", "'United Kingdom & Europe':", "'North America':", "'Central & South America':", "'Middle East & Asia-Pacific':", "mode==='diaspora'", "document.createElement('optgroup')", "els.country.value='JM'"):
               assert expected in js, f'Missing diaspora discovery feature: {expected}'
           for expected in ('function syncStationAnimations(animating)', "card.dataset.stationId=s.stationuuid", "card.classList.toggle('is-playing',active&&animating)", "classList.toggle('is-live',animating)"):
               assert expected in js, f'Missing animation persistence fix: {expected}'
@@ -177,5 +177,8 @@ jobs:
           assert "onDirectory?'#/explore':lastDirectoryHash" in js
           assert ".player-map-shortcut.is-map-view .player-stations-icon{display:block}" in page
           assert "button.classList.toggle('is-map-view',!showDirectory)" in js
+          assert "els.country.value='JM';" in js
+          assert "let lastDirectoryHash='#/africa';" in js
+          assert "code==='africa'" in js
           print('Static checks passed')
           PY
