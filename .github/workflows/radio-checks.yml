@@ -37,7 +37,7 @@ jobs:
           for expected in ('THREE.OrthographicCamera', 'camera.left=-halfWidth', 'camera.top=halfHeight', 'function resize()', 'function hover(event)', 'hitTest(event)', 'tooltip.textContent=tooltipLabel(hit.userData.name,hit.userData.code)', 'bounds.getCenter', 'mapCentre.set(-centre.x,-centre.y)'):
               assert expected in map_js, f'Missing map fit or hover behaviour: {expected}'
           assert '.map-tooltip' in page and '.map-tooltip[hidden]' in page
-          assert 'africa-map.js?v=22' in page
+          assert 'africa-map.js?v=23' in page
           assert 'renderer.setSize(w,h);' in map_js, 'Canvas CSS size must track container dimensions'
           assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
           assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
@@ -52,7 +52,7 @@ jobs:
               assert expected in js, f'Missing Phase 4 logic: {expected}'
           assert 'grid-template-columns:repeat(2,minmax(0,1fr))' in page, 'Missing tablet/mobile cards'
           assert 'grid-template-columns:1fr' in page, 'Missing narrow-screen cards'
-          assert 'africa-map.js?v=22' in page, 'Phase 3 map must be unchanged'
+          assert 'africa-map.js?v=23' in page, 'Phase 3 map must be unchanged'
           assert '<img class="brand-logo" src="./ARPLogo.png"' in page
           assert 'id="clear-recent"' in page
           assert 'function clearRecentStations()' in js
@@ -153,9 +153,11 @@ jobs:
           assert 'depth:.28' in map_js
           assert 'id="map-country-search"' not in page
           assert 'countrySearch' not in map_js
-          assert 'function flagFor(code)' in map_js
+          assert 'function showCountryTooltip(name,code)' in map_js
           assert 'function loadStationCounts()' in map_js
           assert '/json/countrycodes' in map_js
-          assert 'tooltipLabel(hit.userData.name,hit.userData.code)' in map_js
+          assert 'showCountryTooltip(hit.userData.name,hit.userData.code)' in map_js
+          assert 'Click to explore' not in map_js
+          assert 'map-country-flag' in page
           print('Static checks passed')
           PY
