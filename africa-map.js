@@ -257,11 +257,7 @@ function animate(){
     country.lift=reducedMotion?country.target:country.lift+(country.target-country.lift)*.18;
     const live=country.code===broadcastCode;
     const pulse=live&&!reducedMotion?.12*Math.sin(time*2.8):0;
-    for(const marker of cityMarkers){if(marker.userData.code!==country.code)continue;
-      const active=live&&!reducedMotion;
-      marker.scale.setScalar(active?1+.35*(.5+.5*Math.sin(time*5)):1);
-      marker.material.color.setHex(active?0xffe7a0:0xeac277);
-    }
+
     country.group.position.z=country.lift+pulse;
     if(country.trail){
       const visible=live&&!reducedMotion;
@@ -306,6 +302,11 @@ function animate(){
       ring.scale.setScalar(1+phase*5);
       ring.material.opacity=(1-phase)*.55;
     }
+  }
+  for(const marker of cityMarkers){
+    const active=marker.userData.code===broadcastCode&&!reducedMotion;
+    marker.scale.setScalar(active?1+.35*(.5+.5*Math.sin(time*5)):1);
+    marker.material.color.setHex(active?0xffe7a0:0xeac277);
   }
   renderer.render(scene,camera);
 }animate();
