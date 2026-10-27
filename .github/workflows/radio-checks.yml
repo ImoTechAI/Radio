@@ -167,5 +167,8 @@ jobs:
           assert 'flagcdn.com/w80/' in js
           assert "els.country.value='JM'" in js
           assert "els.country.value='GB'" not in js
+          assert 'class="directory-logo-link" href="#/explore"' in page
+          assert '<img src="./ARPLogo.png" alt="TUNE.AFRICAN — return to Africa map">' in page
+          assert 'class="brand" href="#/explore"' in page
           print('Static checks passed')
           PY
