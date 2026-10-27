@@ -66,6 +66,40 @@ function addPolygon(ring,name,code){
   const border=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(outline.map(p=>new THREE.Vector3(p.x,p.y,.34))),new THREE.LineBasicMaterial({color:0xc1954b,transparent:true,opacity:.78}));
   country.group.add(border);country.borders.push(border);
 }
+
+// Curated geographic city locations: markers indicate discovery hubs, not
+// verified transmitter sites or live station counts.
+const radioCities=[
+  ['Lagos','NG',3.3792,6.5244],['Abuja','NG',7.3986,9.0765],
+  ['Accra','GH',-0.1870,5.6037],['Dakar','SN',-17.4677,14.7167],
+  ['Abidjan','CI',-4.0083,5.3600],['Nairobi','KE',36.8219,-1.2921],
+  ['Addis Ababa','ET',38.7578,8.9806],['Kampala','UG',32.5825,0.3476],
+  ['Dar es Salaam','TZ',39.2083,-6.7924],['Kigali','RW',30.0619,-1.9441],
+  ['Johannesburg','ZA',28.0473,-26.2041],['Cape Town','ZA',18.4241,-33.9249],
+  ['Cairo','EG',31.2357,30.0444],['Casablanca','MA',-7.5898,33.5731],
+  ['Algiers','DZ',3.0588,36.7538],['Tunis','TN',10.1815,36.8065],
+  ['Kinshasa','CD',15.2663,-4.4419],['Luanda','AO',13.2344,-8.8383],
+  ['Harare','ZW',31.0530,-17.8252],['Lusaka','ZM',28.3228,-15.3875],
+  ['Maputo','MZ',32.5732,-25.9692],['Antananarivo','MG',47.5079,-18.8792]
+];
+const cityMarkers=[];
+function addCityMarkers(){
+  const geometry=new THREE.SphereGeometry(.075,10,8);
+  for(const [name,code,lon,lat] of radioCities){
+    const country=countryGroups.get(code);
+    if(!country)continue;
+    const point=points([[lon,lat]])[0];
+    const material=new THREE.MeshBasicMaterial({color:0xeac277,depthTest:false});
+    const marker=new THREE.Mesh(geometry,material);
+    marker.position.set(point.x,point.y,.56);
+    marker.renderOrder=11;
+    marker.userData={name,code,city:true};
+    country.group.add(marker);
+    cityMarkers.push(marker);
+    targets.push(marker);
+  }
+}
+
 function styleCountry(code){
   const country=countryGroups.get(code);if(!country)return;
   const hovered=hoveredCode===code;
@@ -104,6 +138,8 @@ function addBroadcastRings(country){
   const box=new THREE.Box3();
   for(const mesh of country.meshes)box.expandByObject(mesh);
   const centre=box.getCenter(new THREE.Vector3());
+  const city=cityMarkers.find(marker=>marker.userData.code===country.code);
+  if(city)centre.copy(city.position);
   const extent=box.getSize(new THREE.Vector3());
   const radius=Math.max(.13,Math.min(extent.x,extent.y)*.14);
   for(let i=0;i<3;i++){
@@ -111,7 +147,7 @@ function addBroadcastRings(country){
       new THREE.RingGeometry(radius*.85,radius,48),
       new THREE.MeshBasicMaterial({color:0xf4bc59,side:THREE.DoubleSide,transparent:true,opacity:0,depthWrite:false})
     );
-    ring.position.set(centre.x,centre.y,.25);
+    ring.position.set(centre.x,centre.y,.58);
     ring.renderOrder=3;
     country.group.add(ring);
     country.rings.push(ring);
@@ -163,12 +199,14 @@ function addLiveEffects(country){
 function setSelected(mesh){
   if(!mesh)return;
   selected=mesh;
-  status.textContent=mesh.userData.name+' selected · Showing stations';
-  window.dispatchEvent(new CustomEvent('radio:country',{detail:{code:mesh.userData.code,name:mesh.userData.name}}));
+  const {code,city}=mesh.userData;
+  const country=countryGroups.get(code);
+  status.textContent=(city?mesh.userData.name+' · ':'')+(country?.name||mesh.userData.name)+' selected · Showing stations';
+  window.dispatchEvent(new CustomEvent('radio:country',{detail:{code,name:country?.name||mesh.userData.name}}));
 }
 function hitTest(event){const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets)[0]?.object||null}
 function pick(event){const hit=hitTest(event);if(hit)setSelected(hit)}
-function hover(event){if(down||!targets.length){tooltip.hidden=true;setHover(null);return}const hit=hitTest(event);setHover(hit?.userData.code||null);tooltip.hidden=!hit;renderer.domElement.style.cursor=hit?'pointer':'grab';if(!hit)return;tooltip.textContent=hit.userData.name;const rect=host.getBoundingClientRect();tooltip.style.left=Math.max(8,Math.min(event.clientX-rect.left+14,rect.width-tooltip.offsetWidth-8))+'px';tooltip.style.top=Math.max(8,Math.min(event.clientY-rect.top-36,rect.height-40))+'px'}
+function hover(event){if(down||!targets.length){tooltip.hidden=true;setHover(null);return}const hit=hitTest(event);setHover(hit?.userData.code||null);tooltip.hidden=!hit;renderer.domElement.style.cursor=hit?'pointer':'grab';if(!hit)return;tooltip.textContent=hit.userData.city?hit.userData.name+' · Explore '+(countryGroups.get(hit.userData.code)?.name||'country')+' stations':hit.userData.name;const rect=host.getBoundingClientRect();tooltip.style.left=Math.max(8,Math.min(event.clientX-rect.left+14,rect.width-tooltip.offsetWidth-8))+'px';tooltip.style.top=Math.max(8,Math.min(event.clientY-rect.top-36,rect.height-40))+'px'}
 renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoomBy(Math.exp(-e.deltaY*0.0012))},{passive:false});
 document.getElementById('map-zoom-in').addEventListener('click',()=>zoomBy(1.25));
 document.getElementById('map-zoom-out').addEventListener('click',()=>zoomBy(1/1.25));
@@ -219,6 +257,11 @@ function animate(){
     country.lift=reducedMotion?country.target:country.lift+(country.target-country.lift)*.18;
     const live=country.code===broadcastCode;
     const pulse=live&&!reducedMotion?.12*Math.sin(time*2.8):0;
+    for(const marker of cityMarkers){if(marker.userData.code!==country.code)continue;
+      const active=live&&!reducedMotion;
+      marker.scale.setScalar(active?1+.35*(.5+.5*Math.sin(time*5)):1);
+      marker.material.color.setHex(active?0xffe7a0:0xeac277);
+    }
     country.group.position.z=country.lift+pulse;
     if(country.trail){
       const visible=live&&!reducedMotion;
@@ -266,5 +309,5 @@ function animate(){
   }
   renderer.render(scene,camera);
 }animate();
-async function init(){try{const res=await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');if(!res.ok)throw Error('Map data unavailable');const geo=await res.json();for(const feature of geo.features){const raw=feature.properties?.name||'';const name=aliases[raw]||raw;if(!countries.has(name))continue;const code=countryCode(name);if(!code)continue;const geometry=feature.geometry;if(!geometry)continue;const polys=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];for(const polygon of polys){if(polygon[0])addPolygon(polygon[0],name,code)}}if(!targets.length)throw Error('No countries available');for(const country of countryGroups.values()){addBroadcastRings(country);addLiveEffects(country)}if(pendingBroadcast)setBroadcast(pendingBroadcast.code,pendingBroadcast.name);const centre=bounds.getCenter(new THREE.Vector3());mapSize=bounds.getSize(new THREE.Vector3());mapCentre.set(-centre.x,-centre.y);group.position.set(mapCentre.x,mapCentre.y,0);resize();status.textContent='Select a country on the 3D map to explore its stations';}catch(e){status.textContent='3D map data unavailable. Use the country selector below.';host.replaceChildren();cancelAnimationFrame(frame)}}
+async function init(){try{const res=await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');if(!res.ok)throw Error('Map data unavailable');const geo=await res.json();for(const feature of geo.features){const raw=feature.properties?.name||'';const name=aliases[raw]||raw;if(!countries.has(name))continue;const code=countryCode(name);if(!code)continue;const geometry=feature.geometry;if(!geometry)continue;const polys=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];for(const polygon of polys){if(polygon[0])addPolygon(polygon[0],name,code)}}if(!targets.length)throw Error('No countries available');addCityMarkers();for(const country of countryGroups.values()){addBroadcastRings(country);addLiveEffects(country)}if(pendingBroadcast)setBroadcast(pendingBroadcast.code,pendingBroadcast.name);const centre=bounds.getCenter(new THREE.Vector3());mapSize=bounds.getSize(new THREE.Vector3());mapCentre.set(-centre.x,-centre.y);group.position.set(mapCentre.x,mapCentre.y,0);resize();status.textContent='Select a country on the 3D map to explore its stations';}catch(e){status.textContent='3D map data unavailable. Use the country selector below.';host.replaceChildren();cancelAnimationFrame(frame)}}
 init();
