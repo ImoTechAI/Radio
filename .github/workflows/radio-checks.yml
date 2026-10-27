@@ -165,5 +165,9 @@ jobs:
           assert 'class="directory-logo-link"' not in page
           assert "const africaAll=mode==='africa'&&!els.country.value" in js
           assert "p.set('countrycode',code)" in js
+          assert 'id="back-to-map"' not in page
+          assert "getElementById('back-to-map')" not in js
+          assert page.index('id="recent-section"') > page.index('id="genre-chips"')
+          assert '0 0 16px 4px rgba(232,177,74,.25)' in page
           print('Static checks passed')
           PY
