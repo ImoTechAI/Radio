@@ -177,5 +177,8 @@ jobs:
           assert "onDirectory?'#/explore':lastDirectoryHash" in js
           assert ".player-map-shortcut.is-map-view .player-stations-icon{display:block}" in page
           assert "button.classList.toggle('is-map-view',!showDirectory)" in js
+          assert "els.country.value='JM';" in js
+          assert "let lastDirectoryHash='#/africa';" in js
+          assert "code==='africa'" in js
           print('Static checks passed')
           PY
