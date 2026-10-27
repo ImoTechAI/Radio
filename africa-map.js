@@ -20,12 +20,19 @@ const pan=new THREE.Vector2();
 const stationCounts=new Map();
 let countsLoading=null;
 let hoveredCodeForTooltip=null;
-function flagFor(code){
-  return /^[A-Z]{2}$/.test(code||'')?String.fromCodePoint(...code.split('').map(ch=>127397+ch.charCodeAt(0))):'';
-}
 function tooltipLabel(name,code){
   const count=stationCounts.get(code);
-  return flagFor(code)+'  '+name+' · '+(count===undefined?'Stations: loading…':count.toLocaleString()+' station'+(count===1?'':'s'))+' · Click to explore';
+  return name+' · '+(count===undefined?'Stations: loading…':count.toLocaleString()+' station'+(count===1?'':'s'));
+}
+function showCountryTooltip(name,code){
+  tooltip.replaceChildren();
+  const flag=document.createElement('img');
+  flag.className='map-country-flag';
+  flag.alt=code+' flag';
+  flag.width=24;flag.height=16;
+  flag.src='https://flagcdn.com/w40/'+code.toLowerCase()+'.png';
+  flag.onerror=()=>{flag.replaceWith(document.createTextNode(code+' '))};
+  tooltip.append(flag,document.createTextNode(tooltipLabel(name,code)));
 }
 async function loadStationCounts(){
   if(countsLoading)return countsLoading;
@@ -37,11 +44,11 @@ async function loadStationCounts(){
         const data=await response.json();
         if(!Array.isArray(data))continue;
         for(const item of data){if(typeof item.name==='string'&&Number.isFinite(Number(item.stationcount)))stationCounts.set(item.name.toUpperCase(),Number(item.stationcount))}
-        if(hoveredCodeForTooltip){const country=countryGroups.get(hoveredCodeForTooltip);if(country&&!tooltip.hidden)tooltip.textContent=tooltipLabel(country.name,country.code)}
+        if(hoveredCodeForTooltip){const country=countryGroups.get(hoveredCodeForTooltip);if(country&&!tooltip.hidden)showCountryTooltip(country.name,country.code)}
         return;
       }catch{}
     }
-    if(hoveredCodeForTooltip){const country=countryGroups.get(hoveredCodeForTooltip);if(country&&!tooltip.hidden)tooltip.textContent=flagFor(country.code)+'  '+country.name+' · Station count unavailable · Click to explore'}
+    if(hoveredCodeForTooltip){const country=countryGroups.get(hoveredCodeForTooltip);if(country&&!tooltip.hidden)showCountryTooltip(country.name,country.code)}
   })();
   return countsLoading;
 }
@@ -198,7 +205,7 @@ function setSelected(mesh){
 }
 function hitTest(event){const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets)[0]?.object||null}
 function pick(event){const hit=hitTest(event);if(hit)setSelected(hit)}
-function hover(event){if(down||!targets.length){tooltip.hidden=true;setHover(null);return}const hit=hitTest(event);setHover(hit?.userData.code||null);tooltip.hidden=!hit;renderer.domElement.style.cursor=hit?'pointer':'grab';if(!hit)return;hoveredCodeForTooltip=hit.userData.code;tooltip.textContent=tooltipLabel(hit.userData.name,hit.userData.code);const rect=host.getBoundingClientRect();tooltip.style.left=Math.max(8,Math.min(event.clientX-rect.left+14,rect.width-tooltip.offsetWidth-8))+'px';tooltip.style.top=Math.max(8,Math.min(event.clientY-rect.top-36,rect.height-40))+'px'}
+function hover(event){if(down||!targets.length){tooltip.hidden=true;setHover(null);return}const hit=hitTest(event);setHover(hit?.userData.code||null);tooltip.hidden=!hit;renderer.domElement.style.cursor=hit?'pointer':'grab';if(!hit)return;hoveredCodeForTooltip=hit.userData.code;showCountryTooltip(hit.userData.name,hit.userData.code);const rect=host.getBoundingClientRect();tooltip.style.left=Math.max(8,Math.min(event.clientX-rect.left+14,rect.width-tooltip.offsetWidth-8))+'px';tooltip.style.top=Math.max(8,Math.min(event.clientY-rect.top-36,rect.height-40))+'px'}
 renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoomBy(Math.exp(-e.deltaY*0.0012))},{passive:false});
 document.getElementById('map-zoom-in').addEventListener('click',()=>zoomBy(1.25));
 document.getElementById('map-zoom-out').addEventListener('click',()=>zoomBy(1/1.25));
