@@ -170,8 +170,11 @@ jobs:
           assert 'class="directory-logo-link" href="#/explore"' in page
           assert 'class="brand" href="#/explore"' in page
           assert 'class="directory-logo-link" href="#/explore"' in page
-          assert "background:url('./ARPLogo.png') center/contain no-repeat;opacity:1" in page
+          assert '.directory-logo-link{position:absolute;' in page
           assert 'class="directory-logo-link" href="#/explore"' in page
           assert 'min-height:270px' not in page
+          assert 'class="directory-logo-link" href="#/explore"' in page
+          assert '<img src="./ARPLogo.png" alt="" aria-hidden="true"></a>' in page
+          assert '.directory-logo-link img{display:block;width:100%;height:100%;object-fit:contain}' in page
           print('Static checks passed')
           PY
