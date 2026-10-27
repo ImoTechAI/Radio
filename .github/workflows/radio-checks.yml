@@ -171,5 +171,9 @@ jobs:
           assert '0 0 16px 4px rgba(232,177,74,.25)' in page
           assert 'min-height:260px;background-image:url' in page
           assert 'background-position:right clamp(8px,7vw,95px) center' in page
+          assert 'class="player-stations-icon"' in page
+          assert 'class="player-africa-icon"' in page
+          assert 'function updatePlayerViewToggle(showDirectory)' in js
+          assert "onDirectory?'#/explore':lastDirectoryHash" in js
           print('Static checks passed')
           PY
