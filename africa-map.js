@@ -16,6 +16,10 @@ const group=new THREE.Group();scene.add(group);
 group.rotation.x=-0.30;group.rotation.y=-0.12;
 const zoomLimits={min:0.8,max:3.5};
 const pan=new THREE.Vector2();
+let cameraFlight=null;
+const countrySearch=document.getElementById('map-country-search');
+const countrySearchGo=document.getElementById('map-country-go');
+const countrySearchResults=document.getElementById('map-country-results');
 function clampPan(){
   const halfWidth=(camera.right-camera.left)/(2*camera.zoom);
   const halfHeight=(camera.top-camera.bottom)/(2*camera.zoom);
@@ -26,8 +30,46 @@ function clampPan(){
   group.position.x=mapCentre.x+pan.x;
   group.position.y=mapCentre.y+pan.y;
 }
-function setZoom(value){camera.zoom=THREE.MathUtils.clamp(value,zoomLimits.min,zoomLimits.max);camera.updateProjectionMatrix();if(camera.zoom<=1.01)pan.set(0,0);clampPan()}
+function setZoom(value){cameraFlight=null;camera.zoom=THREE.MathUtils.clamp(value,zoomLimits.min,zoomLimits.max);camera.updateProjectionMatrix();if(camera.zoom<=1.01)pan.set(0,0);clampPan()}
 function zoomBy(factor){setZoom(camera.zoom*factor)}
+function flyToCountry(code){
+  const country=countryGroups.get(code);if(!country)return;
+  const box=new THREE.Box3();
+  for(const mesh of country.meshes)box.expandByObject(mesh);
+  const centre=box.getCenter(new THREE.Vector3());
+  const targetZoom=Math.min(2.2,zoomLimits.max);
+  const targetPan=new THREE.Vector2(-centre.x-mapCentre.x,-centre.y-mapCentre.y);
+  if(reducedMotion){pan.copy(targetPan);setZoom(targetZoom);return}
+  cameraFlight={start:performance.now(),fromPan:pan.clone(),toPan:targetPan,fromZoom:camera.zoom,toZoom:targetZoom};
+}
+function discoverCountry(code){
+  const country=countryGroups.get(code);if(!country)return;
+  flyToCountry(code);
+  status.textContent=country.name+' · Press Enter or click Explore stations';
+  countrySearchResults.hidden=false;
+  countrySearchResults.replaceChildren();
+  const button=document.createElement('button');
+  button.type='button';button.textContent='Explore '+country.name+' stations';
+  button.addEventListener('click',()=>setSelected(country.meshes[0]));
+  countrySearchResults.append(button);
+}
+function searchCountries(){
+  const query=countrySearch.value.trim().toLocaleLowerCase();
+  countrySearchResults.replaceChildren();
+  if(!query){countrySearchResults.hidden=true;return}
+  const matches=[...countryGroups.values()].filter(c=>c.name.toLocaleLowerCase().includes(query)||c.code.toLocaleLowerCase()===query).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,7);
+  countrySearchResults.hidden=false;
+  for(const country of matches){
+    const button=document.createElement('button');button.type='button';
+    button.textContent=country.name;
+    button.addEventListener('click',()=>{countrySearch.value=country.name;discoverCountry(country.code)});
+    countrySearchResults.append(button);
+  }
+  if(!matches.length){const message=document.createElement('span');message.textContent='No matching African country';countrySearchResults.append(message)}
+}
+countrySearch.addEventListener('input',searchCountries);
+countrySearch.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const query=countrySearch.value.trim().toLocaleLowerCase();const country=[...countryGroups.values()].find(c=>c.name.toLocaleLowerCase()===query||c.code.toLocaleLowerCase()===query)||[...countryGroups.values()].find(c=>c.name.toLocaleLowerCase().includes(query));if(country)discoverCountry(country.code)}});
+countrySearchGo.addEventListener('click',()=>{const query=countrySearch.value.trim().toLocaleLowerCase();const country=[...countryGroups.values()].find(c=>c.name.toLocaleLowerCase()===query||c.code.toLocaleLowerCase()===query)||[...countryGroups.values()].find(c=>c.name.toLocaleLowerCase().includes(query));if(country)discoverCountry(country.code);else searchCountries()});
 const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
 const targets=[];
 const countryGroups=new Map();
@@ -168,12 +210,12 @@ function setSelected(mesh){
 }
 function hitTest(event){const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets)[0]?.object||null}
 function pick(event){const hit=hitTest(event);if(hit)setSelected(hit)}
-function hover(event){if(down||!targets.length){tooltip.hidden=true;setHover(null);return}const hit=hitTest(event);setHover(hit?.userData.code||null);tooltip.hidden=!hit;renderer.domElement.style.cursor=hit?'pointer':'grab';if(!hit)return;tooltip.textContent=hit.userData.name;const rect=host.getBoundingClientRect();tooltip.style.left=Math.max(8,Math.min(event.clientX-rect.left+14,rect.width-tooltip.offsetWidth-8))+'px';tooltip.style.top=Math.max(8,Math.min(event.clientY-rect.top-36,rect.height-40))+'px'}
+function hover(event){if(down||!targets.length){tooltip.hidden=true;setHover(null);return}const hit=hitTest(event);setHover(hit?.userData.code||null);tooltip.hidden=!hit;renderer.domElement.style.cursor=hit?'pointer':'grab';if(!hit)return;tooltip.textContent=(hit.userData.code?String.fromCodePoint(...hit.userData.code.toUpperCase().split('').map(ch=>127397+ch.charCodeAt(0)))+' · ':'')+hit.userData.name+' · Click to explore stations';const rect=host.getBoundingClientRect();tooltip.style.left=Math.max(8,Math.min(event.clientX-rect.left+14,rect.width-tooltip.offsetWidth-8))+'px';tooltip.style.top=Math.max(8,Math.min(event.clientY-rect.top-36,rect.height-40))+'px'}
 renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoomBy(Math.exp(-e.deltaY*0.0012))},{passive:false});
 document.getElementById('map-zoom-in').addEventListener('click',()=>zoomBy(1.25));
 document.getElementById('map-zoom-out').addEventListener('click',()=>zoomBy(1/1.25));
-document.getElementById('map-zoom-reset').addEventListener('click',()=>{pan.set(0,0);setZoom(1)});
-renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,mode:camera.zoom>1.01&&!e.shiftKey?'pan':'rotate'};drag=false;renderer.domElement.setPointerCapture(e.pointerId)});
+document.getElementById('map-zoom-reset').addEventListener('click',()=>{pan.set(0,0);setZoom(1);countrySearchResults.hidden=true});
+renderer.domElement.addEventListener('pointerdown',e=>{cameraFlight=null;down={x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,mode:camera.zoom>1.01&&!e.shiftKey?'pan':'rotate'};drag=false;renderer.domElement.setPointerCapture(e.pointerId)});
 renderer.domElement.addEventListener('pointermove',e=>{
   if(!down){hover(e);return}
   tooltip.hidden=true;setHover(null);
@@ -215,6 +257,7 @@ const rimLight=new THREE.DirectionalLight(0x8eb4cf,.9);rimLight.position.set(10,
 function animate(){
   frame=requestAnimationFrame(animate);
   const time=broadcastClock.getElapsedTime();
+  if(cameraFlight){const t=Math.min(1,(performance.now()-cameraFlight.start)/850);const ease=t*t*(3-2*t);pan.copy(cameraFlight.fromPan).lerp(cameraFlight.toPan,ease);camera.zoom=THREE.MathUtils.lerp(cameraFlight.fromZoom,cameraFlight.toZoom,ease);camera.updateProjectionMatrix();clampPan();if(t===1)cameraFlight=null;}
   for(const country of countryGroups.values()){
     country.lift=reducedMotion?country.target:country.lift+(country.target-country.lift)*.18;
     const live=country.code===broadcastCode;
