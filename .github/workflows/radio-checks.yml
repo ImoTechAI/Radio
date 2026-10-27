@@ -42,7 +42,7 @@ jobs:
           assert 'renderer.setSize(w,h,false)' not in map_js, 'Do not disable renderer CSS sizing on high-DPI screens'
           assert '.map-wrap canvas{display:block;cursor:grab;width:100%;height:100%}' in page
           assert 'radio.js?v=22' in page
-          for expected in ('id="explorer-view"', 'id="directory-view"', 'id="back-to-map"', 'class="explorer-account-actions"', 'id="directory-title"'):
+          for expected in ('id="explorer-view"', 'id="directory-view"', 'class="explorer-account-actions"', 'id="directory-title"'):
               assert expected in page, f'Missing two-view navigation: {expected}'
           for expected in ('function showView(code)', 'function route()', "location.hash='#/country/'", "location.hash='#/explore'", "window.addEventListener('hashchange',route)"):
               assert expected in js, f'Missing country navigation: {expected}'
@@ -165,5 +165,9 @@ jobs:
           assert 'class="directory-logo-link"' not in page
           assert "const africaAll=mode==='africa'&&!els.country.value" in js
           assert "p.set('countrycode',code)" in js
+          assert 'id="back-to-map"' not in page
+          assert "getElementById('back-to-map')" not in js
+          assert page.index('id="recent-section"') > page.index('id="genre-chips"')
+          assert '0 0 16px 4px rgba(232,177,74,.25)' in page
           print('Static checks passed')
           PY
